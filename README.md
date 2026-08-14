@@ -224,10 +224,16 @@ lives: **Confluence** for architecture decision records, **Jira** for the change
 
 ## Building your own
 
-[BUILD-YOUR-OWN-PLUGIN.md](BUILD-YOUR-OWN-PLUGIN.md) is a one-page path for an engineer who
-wants a plugin like this for a different workflow — release readiness, incident handoff, CVE
-triage. It starts with four questions about your team, not with file formats, and it includes
-the things that cost me time so they don't cost you the same.
+[BUILD-YOUR-OWN-PLUGIN.md](BUILD-YOUR-OWN-PLUGIN.md) is a guide for anyone who knows how their team
+makes a decision and wants to package it up — release readiness, incident handoff, vendor review.
+It assumes no software background: you supply the workflow knowledge, Claude Code writes the files,
+and the guide teaches you how to check what it built. Each stage separates what you decide, what
+you ask Claude to build, and what you verify before moving on.
+
+[PLUGIN-TECHNICAL-NOTES.md](PLUGIN-TECHNICAL-NOTES.md) is the companion for when you want to see
+the files themselves, change one by hand, or — most importantly — before letting an automatic check
+run an outside tool. That last section is where I made my worst mistake, written up so you don't
+repeat it.
 
 ## License
 
