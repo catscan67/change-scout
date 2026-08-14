@@ -1,56 +1,121 @@
 # Build your own Claude Code plugin
 
-For an engineer who has seen Change Scout and wants a custom plug-in for a *different* workflow —
-release readiness, incident handoff, CVE triage, data-contract review, whatever your team argues
-about on Fridays. This is not documentation for the Change Scout plugin. It's the path to yours.
+For an engineer who has seen Change Scout and wants one for a *different* workflow — release
+readiness, incident handoff, CVE triage, data-contract review, whatever your team argues about on
+Fridays. This page is the decisions. The appendix is copy-paste starting text for each part; take
+it or write your own.
 
-Start in an empty directory, finish with a working plugin you invoke with a slash command. The
-worked example is **release readiness**; swap the nouns at the end. Everything you need is here —
-you shouldn't have to open other docs to finish.
-
-> Callouts like this are the things that cost me time. They sit beside the step where they bite.
+Worked example throughout: **release readiness**, a plugin called `release-check`.
 
 ---
 
-## Step 0 — Decide what it does (10 minutes, on paper)
+## First, four questions (10 minutes, on paper)
 
-1. **What judgment does your team make repeatedly, and inconsistently?** A *judgment*, not a task.
-   "Is this safe to release?" qualifies; "run the tests" doesn't. If two good engineers disagree on
-   the same evidence, you've found it.
-2. **What evidence already exists?** Code, contracts, tests, config, runbooks. Note what's
-   *missing* too — that becomes the most valuable part of your output.
-3. **What needs reasoning, and what's a rule a script can check?** "Will this break consumers?"
-   needs reasoning. "Does this file parse?" doesn't. This split is the design.
+1. **What judgment does your team make repeatedly, and inconsistently?** A judgment, not a task.
+   If two good engineers disagree on the same evidence, you've found it.
+2. **What evidence already exists?** Code, contracts, tests, config, runbooks — and be honest
+   about what's *missing*, because that becomes the most valuable part of your output.
+3. **What needs reasoning, and what's a rule a script can check?** This split is the design.
 4. **Who reads the result, and what do they need in order to decide?**
 
-Those become a **method** (1+2), an **agent** (2), a **hook** (3), and an **output format** (4).
-Below they become files.
+## The five parts
 
----
+**1. The manifest** — `.claude-plugin/plugin.json`
+Identity: name, version, description. The `name` becomes your command's namespace, so
+`release-check` gives you `/release-check:go-nogo`. Pick something short and unlikely to collide.
+*Only this file goes in `.claude-plugin/`; every other directory sits at plugin root.* → **Appendix A**
 
-## Step 1 — Create the structure
+**2. The method skill** — `skills/<method>/SKILL.md`
+Your team's judgment, written down once: what to check, in what order, what the answer must
+contain. This is the part that's genuinely yours — the rest is wiring. Write it for a *human*
+first; if a new teammate couldn't follow it, an agent can't either. It costs nothing until it's
+used. → **Appendix B**
+
+**3. The agent** — `agents/<worker>.md`
+The investigator. Runs in its own context, returns a conclusion instead of a transcript.
+**The decision that matters is the tool grant.** `tools: Read, Grep, Glob` makes it read-only as a
+*capability*, not as a request — and omitting `Bash` matters, because a shell that can read files
+can write them. Also set `model:` to a tier alias so it survives model turnover, and `maxTurns:`
+to bound cost. → **Appendix C**
+
+**4. The command** — `skills/<name>/SKILL.md`
+The front door: takes what you typed, hands it to the agent, returns the answer. Two settings do
+real work. `disable-model-invocation: true` means only *you* fire it, never Claude on its own. And
+tell it to return the agent's report **verbatim** — otherwise the main session will tidy your
+structured output into prose and strip the tags. Mine did. → **Appendix D**
+
+**5. The hook** — `hooks/hooks.json` + `scripts/<check>.sh`
+The deterministic half: a rule that runs on a file event, for zero model tokens. Use it only where
+code can decide reliably — schema parses, migration has a rollback, contract lints. A `PostToolUse`
+hook runs *after* the edit; it doesn't block, it reports back so the model fixes it in the same
+turn. → **Appendix E**
+
+## Build order
 
 ```bash
 mkdir -p release-check/{.claude-plugin,skills/go-nogo,skills/release-method,agents,hooks,scripts}
 cd release-check
+# fill in the files from the appendix, then:
+claude plugin validate . --strict                  # fails on unknown fields, missing metadata
+claude --plugin-dir . plugin details release-check # lists components + per-session token cost
 ```
 
+Then run it against a repo you actually care about:
+
+```bash
+cd ~/code/your-service
+claude --plugin-dir ~/release-check
 ```
-release-check/
-├── .claude-plugin/plugin.json   ← ONLY this file goes in here
-├── skills/go-nogo/SKILL.md      ← what you type: /release-check:go-nogo
-├── skills/release-method/SKILL.md
-├── agents/release-analyzer.md
-├── hooks/hooks.json
-└── scripts/check-migrations.sh
+```
+/release-check:go-nogo the payment retry change on branch feature/retry
 ```
 
-> Component directories live at plugin **root**, never inside `.claude-plugin/`. This trips nearly
-> everyone once.
+## Confirm it did what you think
 
-## Step 2 — The manifest
+- **Did it delegate?** The transcript shows the subagent running, not the main session answering.
+- **Did anything change?** `git status` clean. If not, your tool grant is wrong.
+- **Does the hook fire?** Trigger it deliberately, then fix the condition and watch it pass.
+- **Are unrelated edits ignored?** Edit a README; nothing should happen.
 
-`.claude-plugin/plugin.json`
+## Three traps that cost me time
+
+**Quote `${CLAUDE_PLUGIN_ROOT}`.** An unquoted path containing a space made my hook exit 0 while
+doing nothing. A check that silently passes is worse than no check.
+
+**Never let a hook fetch code.** Mine ran `npx <tool>` on every edit — downloading and executing
+whatever version was current, on an ordinary file save. Install one exact version deliberately and
+run only that local copy. Then ask what *that* program reads: mine loaded configuration from the
+repository being analyzed, which could execute JavaScript.
+
+**Keep the expected answers out of your test fixture.** If the conclusion is written anywhere in
+the repo you test against, you're measuring retrieval, not reasoning.
+
+## The step people skip
+
+**Run your real request three times *without* the plugin before you build it.** Score both against
+criteria you wrote before looking. I did this and it killed my original pitch — plain Claude Code
+already found the issues I assumed my plugin would find. What it never did was flag that a document
+contradicted itself, or stop and say a decision belonged to someone else. That became the real
+product. Without a baseline you will ship a confident, false claim.
+
+Test adversarially too: put a file in the repo that tries to instruct the agent, and confirm it
+*reports* that rather than obeying it.
+
+## When to add MCP
+
+When your own output keeps naming gaps that a Jira, Confluence, or service-catalog server could
+answer. Your gaps section is the integration roadmap. Adding MCP before that is surface area
+without value.
+
+---
+---
+
+# Appendix — starting text
+
+Copy these, or write your own. Replace `release-check`, `release-method`, `go-nogo`, and
+`release-analyzer` with your own names throughout.
+
+## Appendix A — `.claude-plugin/plugin.json`
 
 ```json
 {
@@ -62,11 +127,9 @@ release-check/
 }
 ```
 
-> `name` becomes your command's namespace: `/release-check:go-nogo`.
+## Appendix B — `skills/release-method/SKILL.md`
 
-## Step 3 — The method skill
-
-`skills/release-method/SKILL.md` — how your team decides, written down once.
+Replace the numbered checks and the report sections with your team's. Keep the two rules.
 
 ```markdown
 ---
@@ -98,11 +161,7 @@ description: How this team decides whether a change is ready to release — what
 Under 600 words. This is for a decision, not a code review.
 ```
 
-> Write the method for a human first. If a new teammate couldn't follow it, an agent can't either.
-
-## Step 4 — The agent
-
-`agents/release-analyzer.md` — the frontmatter carries the real decisions.
+## Appendix C — `agents/release-analyzer.md`
 
 ```markdown
 ---
@@ -131,13 +190,7 @@ Never invent a value you can't evidence — not a version, an owner, or a config
 Your final message is the report. Nothing else.
 ```
 
-> `tools:` **is** the security boundary. Omit `Bash` — a shell that can read files can write them.
-> `skills:` injects the full method text at startup; it's not a pointer the agent might ignore.
-> `model: sonnet` is a tier alias, so this survives model turnover. `maxTurns` bounds cost.
-
-## Step 5 — The command
-
-`skills/go-nogo/SKILL.md` — the front door.
+## Appendix D — `skills/go-nogo/SKILL.md`
 
 ```markdown
 ---
@@ -158,11 +211,7 @@ restructure it, or add commentary of your own. If it fails or returns nothing, s
 show what you got — do not write an assessment of your own to fill the gap.
 ```
 
-> `disable-model-invocation: true` means only *you* fire this, never Claude on its own.
-> The verbatim instruction matters more than it looks: the main session will happily "tidy" a
-> structured report into prose and strip your tags. Mine did, until I said this.
-
-## Step 6 — A hook (optional — only for rules code can decide)
+## Appendix E — the hook
 
 `hooks/hooks.json`
 
@@ -172,7 +221,7 @@ show what you got — do not write an assessment of your own to fill the gap.
 ] } ] } }
 ```
 
-`scripts/check-migrations.sh`
+`scripts/check-migrations.sh` — then `chmod +x scripts/check-migrations.sh`
 
 ```bash
 #!/usr/bin/env bash
@@ -190,81 +239,6 @@ echo "Expected: ${FILE%.sql}.down.sql" >&2
 exit 2    # exit 2 hands stderr back to Claude as feedback on the edit
 ```
 
-```bash
-chmod +x scripts/check-migrations.sh
-```
-
-> **Quote `${CLAUDE_PLUGIN_ROOT}`.** An unquoted path containing a space made my hook exit 0 while
-> doing nothing — a check that silently passes is worse than no check.
-> **`PostToolUse` runs *after* the edit.** It doesn't block; it reports back so the model fixes it
-> in the same turn.
-> **Never let a hook fetch code.** Mine ran `npx <tool>` on every edit, which downloads and executes
-> whatever version is current. Install an exact version deliberately; run only the local copy.
-
-## Step 7 — Validate and load
-
-```bash
-claude plugin validate . --strict          # fails on unknown fields and missing metadata
-claude --plugin-dir . plugin details release-check
-```
-
-You should see your skills, agent, and hook listed, plus the token cost the plugin adds to every
-session.
-
-## Step 8 — Run it
-
-```bash
-cd ~/code/your-service                     # a repo you actually want to assess
-claude --plugin-dir ~/release-check
-```
-
-Then, in the session:
-
-```
-/release-check:go-nogo the payment retry change on branch feature/retry
-```
-
-## Step 9 — Confirm it did what you think
-
-- **Did it delegate?** The transcript should show the subagent running, not the main session
-  answering directly.
-- **Did anything change?** `git status` should be clean. If it isn't, your tool grant is wrong.
-- **Does the hook fire?** Create `migrations/001_add_index.sql` with no `.down.sql` beside it —
-  you should see your message. Add the rollback file; it should pass silently.
-- **Are unrelated edits ignored?** Edit a README. The hook should do nothing.
-
-## Step 10 — Evaluate against a baseline
-
-Run your real request in the same repo **three times without the plugin**, then three times with
-it. Score both against criteria you wrote *before* looking at either.
-
-> This is the step people skip, and it's the one that matters. I did it and it killed my original
-> pitch — plain Claude Code already found the issues I assumed my plugin would find. What it never
-> did was flag that a document contradicted itself, or stop and say a decision belonged to someone
-> else. That became the real product. Without a baseline you will ship a confident, false claim.
-
-Test adversarially too: put a file in the repo that tries to instruct the agent, and confirm it
-reports that rather than obeying it.
-
----
-
-## Make it yours
-
-| Replace | With |
-|---|---|
-| `release-check` in `plugin.json` and paths | your plugin name — it becomes the command namespace |
-| `skills/release-method/SKILL.md` | your team's actual method and report format |
-| `go-nogo` | your command name → `/your-plugin:your-command` |
-| `tools:` in the agent | the **smallest** grant that works — start read-only, add only what fails without |
-| `check-migrations.sh` | one deterministic rule you're tired of repeating in review |
-
-Keep it small enough that you can explain every file. If you can't defend it in a code review,
-don't ship it.
-
-**Distribute it** by committing the directory to git; teammates clone it and run
-`claude --plugin-dir <path>`. For wider rollout, Claude Code supports plugin marketplaces —
-see `claude plugin marketplace --help`.
-
-**Add MCP later, and only when your own output asks for it.** When your reports keep naming gaps a
-Jira, Confluence, or service-catalog server could answer, that's the signal — your gaps section is
-the integration roadmap. Adding MCP before that is surface area without value.
+Verified: this example validates with `--strict`, loads as two skills, one agent, and one hook,
+and the script returns exit 2 for a migration with no rollback, exit 0 once the rollback exists,
+and exit 0 for unrelated files.
