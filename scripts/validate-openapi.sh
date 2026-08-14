@@ -14,8 +14,10 @@
 #      declare `plugins` — JavaScript modules the linter imports and executes.
 #      Without --config, editing an OpenAPI file in a hostile repository would
 #      run that repository's own code.
-#   3. It makes no network calls: telemetry and update checks are disabled, and
-#      contracts containing remote $ref values are refused rather than resolved.
+#   3. It reduces network exposure: telemetry and update checks are disabled,
+#      and contracts whose own text carries a remote $ref are refused rather
+#      than resolved. That last one is a best-effort filter, NOT a boundary —
+#      see the note above the check.
 
 set -euo pipefail
 
@@ -51,8 +53,15 @@ if [ ! -f "$REDOCLY_CONFIG" ]; then
   exit 2
 fi
 
-# Remote references would be fetched over the network during linting. Refuse.
-if grep -qE '\$ref:.*https?://' "$FILE"; then
+# Remote references are fetched over the network during linting, so refuse them.
+#
+# This is a BEST-EFFORT FILTER, not a network boundary. It inspects only the
+# edited file's own text. A local $ref chain reaching a file that itself carries
+# a remote reference is not caught, and Redocly resolves those recursively.
+# Where a hard guarantee is required — anywhere server-side request forgery into
+# reachable internal services would matter — run the linter under enforced
+# network denial. See "Known limitations" in README.md.
+if grep -qE "\\\$ref[\"']?[[:space:]]*:.*https?://" "$FILE"; then
   echo "OpenAPI validation skipped: $FILE contains remote \$ref values." >&2
   echo "This hook does not resolve references over the network." >&2
   exit 2

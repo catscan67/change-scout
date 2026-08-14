@@ -1,24 +1,18 @@
 # Change Impact Scout
 
 A Claude Code plugin that recovers the architectural context around a proposed change
-**before** implementation begins. In one sentence: it helps a developer understand what else
-they might break before they change the code.
+**before** implementation begins. In one sentence: it helps a developer understand what else they might break before they change the code.
 
 ## Who this is for
 
-**Enterprise integration developers at regulated healthcare payers** — the people maintaining
-services that span multiple systems of record (member enrollment, plan administration,
-document management). They receive requirements that sound simple and turn out to have
-architectural implications invisible in the code they first open.
+**Enterprise integration developers at regulated healthcare payers** — the people maintaining services that span multiple systems of record (member enrollment, plan administration, document management). They receive requirements that sound simple and turn out to have architectural implications invisible in the code they first open.
 
 The plugin does not inspect live enterprise systems. It reads the architectural evidence
-already in the repository — code, OpenAPI specifications, tests, configuration, integration
-definitions, documentation — and reconstructs the context around a proposed change.
+already in the repository — code, OpenAPI specifications, tests, configuration, integration definitions, documentation — and reconstructs the context around a proposed change.
 
 ## What it produces
 
-An **impact assessment**, not a plan and not a diff, written for the person deciding whether
-the change belongs in this release:
+An **impact assessment**, not a plan and not a diff, written for the person deciding whether the change belongs in this release:
 
 1. **Decision posture** — can work begin, and why or why not
 2. **What is changing** — the capability, and the assumption that no longer holds
@@ -27,14 +21,11 @@ the change belongs in this release:
 5. **Known gaps** — what the repository could not answer, and who to ask
 
 Typically 800–1,000 words, with per-section budgets, so it stays readable by a business
-stakeholder while every conclusion remains traceable through line-level citations. Observed
-across runs: 824, 843, 972, and 1,112 words.
+stakeholder while every conclusion remains traceable through line-level citations. Observed across runs: 824, 843, 972, and 1,112 words.
 
 ## Prerequisites
 
-**Node.js 20.19–20.x or 22.12+** (required by the pinned linter; declared in `engines`). Nothing else — no accounts, no
-credentials, no API keys beyond your existing Claude Code authentication, no live systems, no
-configuration.
+**Node.js 20.19–20.x or 22.12+** (required by the pinned linter; declared in `engines`). Nothing else — no accounts, no credentials, no API keys beyond your existing Claude Code authentication, no live systems, no configuration.
 
 ## Install and validate
 
@@ -54,13 +45,9 @@ claude plugin validate . --strict
 claude --plugin-dir . plugin details change-scout
 ```
 
-`npm ci` installs the exact version in `package-lock.json` and verifies it against a published
-integrity hash. The linter is a single self-contained package with **zero transitive
-dependencies**, so the entire supply chain for the deterministic layer is one pinned,
-hash-verified artifact.
+`npm ci` installs the exact version in `package-lock.json` and verifies it against a published integrity hash. The linter is a single self-contained package with **zero transitive dependencies**, so the entire supply chain for the deterministic layer is one pinned, hash-verified artifact.
 
-Skipping setup is safe: the hook detects the missing linter and tells you how to install it
-rather than fetching anything.
+Skipping setup is safe: the hook detects the missing linter and tells you how to install it rather than fetching anything.
 
 Expected output:
 
@@ -82,9 +69,7 @@ Per-component (rounded)
   impact                            ~30       ~360
 ```
 
-The inventory counts the `/impact` slash command under "Skills" — that is the CLI's grouping
-for invokable prompt components, not a second methodology file. There is one skill, one agent,
-one command, one hook.
+The inventory counts the `/impact` slash command under "Skills" — that is the CLI's grouping for invokable prompt components, not a second methodology file. There is one skill, one agent, one command, one hook.
 
 ## Demo walkthrough
 
@@ -98,11 +83,7 @@ cd sample-repo/member-services
 claude --plugin-dir ../..
 ```
 
-> **Why the `cd` matters.** The agent analyzes its working directory. Started at the plugin
-> root it would read this README, the skill, and the agent definition — and this README
-> describes what the assessment is supposed to find. The demo would then be measuring reading
-> comprehension rather than architectural analysis. Running from the sample repo keeps the
-> agent's evidence to the repository under analysis.
+> **Why the `cd` matters.** The agent analyzes its working directory. Started at the plugin root it would read this README, the skill, and the agent definition — and this README describes what the assessment is supposed to find. The demo would then be measuring reading comprehension rather than architectural analysis. Running from the sample repo keeps the agent's evidence to the repository under analysis.
 
 Then, in the session:
 
@@ -111,14 +92,11 @@ Then, in the session:
 ```
 
 `/change-scout:impact` is the canonical form and always resolves to this plugin. Bare
-`/impact` also works and is fine for everyday use — but a plugin's short name yields to any
-skill or command already using that name, so a machine with its own `/impact` would silently
-run that instead. The qualified form removes the ambiguity, which is why the demo uses it.
+`/impact` also works and is fine for everyday use — but a plugin's short name yields to any skill or command already using that name, so a machine with its own `/impact` would silently run that instead. The qualified form removes the ambiguity, which is why the demo uses it.
 
 ### What a good assessment surfaces
 
-The request sounds like adding a card type. The evidence says otherwise, and no single file
-says any of this — each conclusion requires joining two artifacts:
+The request sounds like adding a card type. The evidence says otherwise, and no single file says any of this — each conclusion requires joining two artifacts:
 
 | Joined from | Conclusion |
 |---|---|
@@ -132,15 +110,11 @@ says any of this — each conclusion requires joining two artifacts:
 
 With a session open in the sample repo, ask Claude to make any edit to
 `openapi/card-api.yaml`. The PostToolUse hook lints the contract automatically and reports
-failures back into the session. Delete the `title:` line from `info:` and the linter reports
-the document invalid; make a valid edit and it passes silently. Edit any other file and the
-hook exits without linting.
+failures back into the session. Delete the `title:` line from `info:` and the linter reports the document invalid; make a valid edit and it passes silently. Edit any other file and the hook exits without linting.
 
 ## Before and after
 
-Baselines were captured **before any component was written**, so the comparison is measured
-rather than asserted. Five runs of Claude Code without the plugin, on the same repository,
-with the same change request, on the same model.
+Baselines were captured **before any component was written**, so the comparison is measured rather than asserted. Five runs of Claude Code without the plugin, on the same repository, with the same change request, on the same model.
 
 | | Claude Code (implementing) ×3 | Claude Code (plan mode) ×2 | **With this plugin** |
 |---|---|---|---|
@@ -154,16 +128,9 @@ with the same change request, on the same model.
 | Output | code plus a summary | 1,980 and 2,651 words | **824–1,112 words** |
 | Cost / duration | $1.07–$1.62, ~3 min | $2.72–$2.82, ~8 min | **$0.42–$0.46, ~2¼ min** |
 
-**The honest summary:** unaided Claude Code is strong here. It finds the issues. What it does
-not do is report that documentation has drifted from intent, name the assumption the change
-invalidates before listing blockers, or stop at the point where a decision belongs to someone
-else. Plan mode is the closest competitor and is included deliberately — omitting it would
-leave the obvious question unanswered.
+**The honest summary:** unaided Claude Code is strong here. It finds the issues. What it does not do is report that documentation has drifted from intent, name the assumption the change invalidates before listing blockers, or stop at the point where a decision belongs to someone else. Plan mode is the closest competitor and is included deliberately — omitting it would leave the obvious question unanswered.
 
-The full baseline transcripts were captured separately and are **deliberately excluded from
-this repository**. Including them would place a near-complete analysis of the demo scenario
-inside the repository the agent analyzes, and the plugin could no longer be said to have
-recovered that context independently. No demo or validation step depends on them.
+The full baseline transcripts were captured separately and are **deliberately excluded from this repository**. Including them would place a near-complete analysis of the demo scenario inside the repository the agent analyzes, and the plugin could no longer be said to have recovered that context independently. No demo or validation step depends on them.
 
 ## What this plugin executes and when
 
@@ -176,30 +143,13 @@ Complete disclosure of everything that runs.
 | You type `/change-scout:impact` | The `impact-analyzer` subagent reads files and sends what it reads to Claude as model input | Model API only — see below |
 | Anything else | Nothing | — |
 
-- **Nothing is downloaded at runtime.** The hook executes only the pinned binary inside this
-  plugin's `node_modules`, resolved from the script's own location — never `npx`, never a
-  registry, never a global install or `$PATH` lookup, so the version that runs is the version
-  in the lockfile. If it is not installed, the hook fails with setup instructions rather than
-  fetching anything.
+- **Nothing is downloaded at runtime.** The hook executes only the pinned binary inside this plugin's `node_modules`, resolved from the script's own location — never `npx`, never a registry, never a global install or `$PATH` lookup, so the version that runs is the version in the lockfile. If it is not installed, the hook fails with setup instructions rather than fetching anything.
 - **The analyzed repository cannot supply executable configuration.** Redocly normally
-  discovers a `redocly.yaml` from the working directory, and that file can declare `plugins` —
-  JavaScript modules the linter imports and *executes*. So a hostile repository could run its
-  own code simply because you edited an OpenAPI file. The hook passes this plugin's own
-  reviewed config explicitly with `--config`, which suppresses that discovery. Regression-tested
-  with a canary plugin declared from the repository root, from a nested directory, from beside
-  the contract, and with the working directory set to the contract's own folder: the canary
-  never executes.
-- **No network calls at runtime.** Telemetry and update checks are disabled explicitly
-  (`REDOCLY_TELEMETRY=off`, `REDOCLY_SUPPRESS_UPDATE_NOTICE=true`), and a contract containing
-  remote `$ref` values is refused rather than resolved, because resolving one would fetch it.
+  discovers a `redocly.yaml` from the working directory, and that file can declare `plugins` — JavaScript modules the linter imports and *executes*. So a hostile repository could run its own code simply because you edited an OpenAPI file. The hook passes this plugin's own reviewed config explicitly with `--config`, which suppresses that discovery. Regression-tested with a canary plugin declared from the repository root, from a nested directory, from beside the contract, and with the working directory set to the contract's own folder: the canary never executes.
+- **Network exposure at runtime is reduced, not eliminated — and the difference matters.** Telemetry and update checks are disabled explicitly (`REDOCLY_TELEMETRY=off`, `REDOCLY_SUPPRESS_UPDATE_NOTICE=true`), and a contract whose own text carries a remote `$ref` is refused rather than resolved. That refusal is a **best-effort filter, not a boundary**: it inspects only the edited file, while Redocly resolves reference chains recursively — so a local `$ref` reaching a file that itself points at a URL would not be caught. In practice this hook makes no network calls; it is not architecturally prevented from doing so. Where that distinction matters — anywhere a fetch into reachable internal services would be a server-side request forgery concern — run the linter under enforced network denial.
 - **The hook is a short, commented shell script.** It reads the edited file's path, exits
-  immediately unless that path is an OpenAPI contract, lints it, and returns the linter's own
-  output. No reasoning, no model call, no state.
-- **The agent cannot modify anything.** Its tool grant is `Read`, `Grep`, `Glob` — no `Edit`,
-  no `Write`, and deliberately no `Bash`, since a shell that can read files can also write
-  them. Verified by running it with permissions fully bypassed: zero files changed, because no
-  mutating tool exists in its grant. That is a property of the tool grant, not a promise in a
-  prompt.
+  immediately unless that path is an OpenAPI contract, lints it, and returns the linter's own output. No reasoning, no model call, no state.
+- **The agent cannot modify anything.** Its tool grant is `Read`, `Grep`, `Glob` — no `Edit`, no `Write`, and deliberately no `Bash`, since a shell that can read files can also write them. Verified by running it with permissions fully bypassed: zero files changed, because no mutating tool exists in its grant. That is a property of the tool grant, not a promise in a prompt.
 - **The agent never fires by itself.** `disable-model-invocation: true` means it runs only
   when you invoke the command.
 
@@ -207,81 +157,42 @@ Complete disclosure of everything that runs.
 
 This is a Claude Code plugin, so being precise matters more than being reassuring:
 
-- **File contents the agent reads become model input** and are processed by whichever Claude
-  service your Claude Code installation is configured against, under your organization's plan
-  and data-handling settings. The plugin adds no telemetry and contacts no third-party service,
-  but "runs locally" describes the *tools*, not the analysis.
-- **The dependency install is a real network operation** — deliberate, one-time, pinned, and
-  integrity-checked, rather than automatic and mutable.
+- **File contents the agent reads become model input** and are processed by whichever Claude service your Claude Code installation is configured against, under your organization's plan and data-handling settings. The plugin adds no telemetry and contacts no third-party service, but "runs locally" describes the *tools*, not the analysis.
+- **The dependency install is a real network operation** — deliberate, one-time, pinned, and integrity-checked, rather than automatic and mutable.
 
 **If you work with protected health information or other regulated data:** confirm your
-organization's approval, retention settings, and data residency before pointing this at a real
-repository, and confirm Business Associate Agreement and zero-data-retention coverage where
-applicable. Those are properties of your Claude configuration, not of this plugin, and this
-plugin cannot grant them.
+organization's approval, retention settings, and data residency before pointing this at a real repository, and confirm Business Associate Agreement and zero-data-retention coverage where applicable. Those are properties of your Claude configuration, not of this plugin, and this plugin cannot grant them.
 
 ### Limits of the agent's containment
 
 The agent is instructed to treat repository contents as untrusted evidence rather than
-instructions, to stay within the repository under analysis, and never to read credential stores
-or reproduce secret values. **Those controls are model-enforced, not filesystem containment.**
-`Read`, `Grep`, and `Glob` can technically address files outside the repository unless Claude
-Code is launched inside a filesystem sandbox.
+instructions, to stay within the repository under analysis, and never to read credential stores or reproduce secret values. **Those controls are model-enforced, not filesystem containment.** `Read`, `Grep`, and `Glob` can technically address files outside the repository unless Claude Code is launched inside a filesystem sandbox.
 
 Tested behavior: asked to read a canary file outside the repository, the agent refused and
-identified the request as out of scope. That is reassuring, and it is not a guarantee — it is
-the model behaving well, not the system preventing the action. For regulated use, run analysis
-in a sandbox that permits repository reads, blocks reads outside the approved workspace, denies
-network access during analysis, and excludes credentials from the mounted environment.
+identified the request as out of scope. That is reassuring, and it is not a guarantee — it is the model behaving well, not the system preventing the action. For regulated use, run analysis in a sandbox that permits repository reads, blocks reads outside the approved workspace, denies network access during analysis, and excludes credentials from the mounted environment.
 
 ### Independent security review
 
-This plugin was reviewed twice with [Trust Issues](https://github.com/howshannon/trust-issues),
-a third-party pre-install repository scanner, each pass followed by a manual multi-persona
-review. Neither pass found malware, credential harvesting, obfuscation, hidden instructions, or
-exfiltration. Both found real problems worth fixing.
+This plugin was reviewed twice with [Trust Issues](https://github.com/howshannon/trust-issues), a third-party pre-install repository scanner created and shared  by my awesome friend Shannon Tran (https://www.linkedin.com/in/los-shangeles/).  Each pass was followed by a manual multi-persona review. Neither pass found malware, credential harvesting, obfuscation, hidden instructions, or exfiltration. Both found real problems worth fixing.
 
-**First pass** flagged that the hook used `npx` to fetch and execute a mutable linter version
-automatically on every OpenAPI edit, and that this section overstated how local the plugin's
-operation is. Fixed by pinning the linter to an exact lockfile-verified version installed
-through an explicit setup step, and by rewriting the disclosures above.
+**First pass** flagged that the hook used `npx` to fetch and execute a mutable linter version automatically on every OpenAPI edit, and that this section overstated how local the plugin's operation is. Fixed by pinning the linter to an exact lockfile-verified version installed through an explicit setup step, and by rewriting the disclosures above.
 
-**Second pass** found the subtler version of the same class of problem: the *binary* was now
-trusted and pinned, but Redocly still loaded its *configuration* from the repository being
-analyzed — and that configuration can import and execute JavaScript. A repository could run its
-own code by shipping a `redocly.yaml`. Confirmed by reproducing it, then fixed by forcing this
-plugin's own config with `--config`, disabling telemetry and update checks, refusing remote
-`$ref` values, and adding the regression tests described above.
+**Second pass** found the subtler version of the same class of problem: the *binary* was now trusted and pinned, but Redocly still loaded its *configuration* from the repository being analyzed — and that configuration can import and execute JavaScript. A repository could run its own code by shipping a `redocly.yaml`. Confirmed by reproducing it, then fixed by forcing this plugin's own config with `--config`, disabling telemetry and update checks, refusing remote `$ref` values, and adding the regression tests described above.
 
-That second finding is the more instructive one. The first fix made the executable trustworthy;
-it did not make what the executable *reads* trustworthy. Trusted tooling loading untrusted
-configuration from a working tree is a general pattern worth looking for, not a Redocly quirk.
+That second finding is the more instructive one. The first fix made the executable trustworthy; it did not make what the executable *reads* trustworthy. Trusted tooling loading untrusted configuration from a working tree is a general pattern worth looking for, not a Redocly quirk.
 
 ## Design principle
 
-**AI reasoning where architectural judgment is required; deterministic tooling where rules can
-be enforced.** The agent reasons about impact. The hook validates contracts without reasoning
-— a linter either passes or it doesn't, and asking a model to decide that would be slower,
-costlier, and less reliable.
+**AI reasoning where architectural judgment is required; deterministic tooling where rules can be enforced.** The agent reasons about impact. The hook validates contracts without reasoning — a linter either passes or it doesn't, and asking a model to decide that would be slower, costlier, and less reliable.
 
-**The cost corollary.** The deterministic layer runs for **zero model tokens** — the hook is a
-shell script. The plugin adds **~277 tokens** to a session simply by existing, which is the
-component descriptions and nothing more. The expensive part is the methodology, and it is paid
-only when it fires. Agent runs are **deliberate** — invoked through `/impact`, never
-auto-triggered — and **bounded** by a `maxTurns` ceiling. The model is specified by tier alias
-(`sonnet`) rather than a pinned version string, so the plugin survives model turnover.
+**The cost corollary.** The deterministic layer runs for **zero model tokens** — the hook is a shell script. The plugin adds **~277 tokens** to a session simply by existing, which is the component descriptions and nothing more. The expensive part is the methodology, and it is paid only when it fires. Agent runs are **deliberate** — invoked through `/impact`, never auto-triggered — and **bounded** by a `maxTurns` ceiling. The model is specified by tier alias (`sonnet`) rather than a pinned version string, so the plugin survives model turnover.
 
 ## Why there is no MCP server
 
-Version 1 analyzes evidence inside a repository, which Claude Code's built-in tools already
-read well. Adding an MCP server here would add installation burden, a configuration surface,
-and a trust surface without adding capability — surface area to check a box.
+Version 1 analyzes evidence inside a repository, which Claude Code's built-in tools already read well. Adding an MCP server here would add installation burden, a configuration surface, and a trust surface without adding capability — surface area to check a box.
 
 MCP belongs in the enterprise version of this plugin, where the genuinely missing evidence
-lives: Confluence for architecture decision records, Jira for the change history behind a
-service, an API catalog or gateway for the consumer registry the repository can only claim to
-know. Every assessment this plugin produces names those gaps and routes them to a human — and
-each named gap is a candidate MCP integration. The gaps report is the roadmap.
+lives: **Confluence** for architecture decision records, **Jira** for the change history behind a service, an **API catalog** or gateway for the consumer registry the repository can only claim to know. Every assessment this plugin produces names those gaps and routes them to a human — and each named gap is a candidate MCP integration. The gaps report is the roadmap.
 
 ## How it is built
 
@@ -305,6 +216,11 @@ each named gap is a candidate MCP integration. The gaps report is the roadmap.
 - **`sample-repo/member-services/` is not a runnable system.** It is evidence for a
   demonstration. `npm test` passes and the contract lints; there is no server.
 - **Acme Health Plan does not exist.** The scenario is fictional.
+- **The linter's network behavior is filtered, not fenced.** The remote-`$ref` check reads only
+  the edited contract. A transitive local reference chain ending at a remote URL would still be
+  resolved by the linter. Enforced network denial around the linter process is the only strong
+  guarantee, and this plugin does not implement one — it is an environmental control, not a
+  property this shell script can provide portably.
 
 ## License
 

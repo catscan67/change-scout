@@ -9,6 +9,6 @@
   },
   "scripts": {
     "test": "node --test",
-    "validate:openapi": "../../node_modules/.bin/redocly lint --config ../../redocly.yaml openapi/card-api.yaml"
+    "validate:openapi": "REDOCLY_TELEMETRY=off REDOCLY_SUPPRESS_UPDATE_NOTICE=true ../../node_modules/.bin/redocly lint --config ../../redocly.yaml openapi/card-api.yaml"
   }
 }
