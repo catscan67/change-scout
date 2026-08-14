@@ -33,10 +33,21 @@ used. → **Appendix B**
 
 **3. The agent** — `agents/<worker>.md`
 The investigator. Runs in its own context, returns a conclusion instead of a transcript.
-**The decision that matters is the tool grant.** `tools: Read, Grep, Glob` makes it read-only as a
-*capability*, not as a request — and omitting `Bash` matters, because a shell that can read files
-can write them. Also set `model:` to a tier alias so it survives model turnover, and `maxTurns:`
-to bound cost. → **Appendix C**
+**The decision that matters is the tool grant** — and the rule is *the smallest grant that does the
+job*, not "always read-only." `tools: Read, Grep, Glob` makes an agent read-only as a *capability*
+rather than a request, which is right when the evidence is files. Also set `model:` to a tier alias
+so it survives model turnover, and `maxTurns:` to bound cost.
+
+*When your agent needs to run commands.* Plenty do — the release method above asks what changed
+since the last tag, and nothing but `git log` answers that. So you add `Bash`, and three things
+change. The agent can now write, delete, and reach the network, so read-only stops being a
+property you get for free; verify it differently by running it and checking `git status` is still
+clean afterwards. Narrow what it may run with permission rules —
+`"allow": ["Bash(git log:*)", "Bash(git diff:*)"]`, `"deny": ["Bash(curl *)"]` — but those live in
+the user's or project's settings, so **document the rules your plugin expects** rather than
+assuming you can set them. And treat prefix matching as a fence, not a wall: a shell is a shell.
+The alternative worth considering first is letting a hook run the command and write the result
+somewhere a read-only agent simply reads. → **Appendix C**
 
 **4. The command skill** — `skills/<name>/SKILL.md`
 The front door: takes what you typed, hands it to the agent, returns the answer. Two settings do
@@ -214,6 +225,35 @@ Never invent a value you can't evidence — not a version, an owner, or a config
 
 Your final message is the report. Nothing else.
 ```
+
+### Variant — when the agent needs to run commands
+
+Item 1 of the release method ("what changed since the last release tag") needs `git`. Add `Bash`
+to the grant and replace the "no mutation tools" paragraph:
+
+```yaml
+tools: Read, Grep, Glob, Bash
+```
+
+```markdown
+You may run read-only shell commands to gather evidence — `git log`, `git diff`, `git status`.
+Do not modify, stage, or commit anything. You are gathering evidence, not changing the
+repository, and your job ends where a human decision begins.
+```
+
+Then narrow it in the settings your team already uses, and say so in your README so people know
+what the plugin expects:
+
+```json
+{ "permissions": {
+  "allow": ["Bash(git log:*)", "Bash(git diff:*)", "Bash(git status)"],
+  "deny":  ["Bash(curl *)", "Bash(git push:*)", "Bash(git commit:*)"]
+} }
+```
+
+Prefix rules narrow the blast radius; they don't make a shell safe. If the agent only ever needs
+one fixed command, a hook that runs it and writes the output to a file the agent reads keeps the
+grant read-only and is worth the extra file.
 
 ## Appendix D — `skills/go-nogo/SKILL.md`
 
