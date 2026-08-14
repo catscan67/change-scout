@@ -1,0 +1,136 @@
+openapi: 3.0.3
+
+info:
+  title: Member Card API
+  version: 1.4.0
+  description: |
+    Read-only retrieval of member ID card documents for Acme Health Plan.
+
+    Consumed by the member portal, the mobile application, and the member services
+    call-centre desktop.
+  contact:
+    name: Member Experience Platform team
+    email: member-platform@acme-health.example
+  license:
+    name: Proprietary — internal use only
+    url: https://acmehealth.internal/legal/api-terms
+
+servers:
+  - url: https://api.acmehealth.internal/member-services/v1
+    description: Production
+  - url: https://api-uat.acmehealth.internal/member-services/v1
+    description: User acceptance testing
+
+tags:
+  - name: Cards
+    description: Retrieval of member ID card documents.
+
+security:
+  - bearerAuth: []
+
+paths:
+  /members/{memberId}/card:
+    get:
+      tags:
+        - Cards
+      operationId: getMemberCard
+      summary: Retrieve a member's ID card
+      description: |
+        Returns the ID card document on file for the supplied member.
+
+        The member identifier is validated upstream before retrieval is attempted.
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          description: Acme member identifier, as issued by the Enrollment System.
+          schema:
+            type: string
+            pattern: '^M[0-9]{9}$'
+            example: M100200300
+      responses:
+        '200':
+          description: The member's ID card.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Card'
+        '400':
+          description: The member identifier is malformed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: No card document is on file for this member.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Service-to-service bearer token issued by the Acme gateway.
+
+  schemas:
+    Card:
+      type: object
+      description: An ID card document held for a member.
+      required:
+        - cardId
+        - memberId
+        - memberName
+        - planId
+        - planName
+        - groupNumber
+        - issuedDate
+      properties:
+        cardId:
+          type: string
+          description: Nuxeo document identifier for the card.
+          example: 8f14e45f-ea8d-4b1c-9f2a-7c3d5e6a1b20
+        memberId:
+          type: string
+          description: Acme member identifier the card was issued to.
+          example: M100200300
+        memberName:
+          type: string
+          description: Member name as printed on the card.
+          example: JORDAN A RIVERA
+        planId:
+          type: string
+          description: Identifier of the plan the card was issued under.
+          example: ACME-PPO-2026
+        planName:
+          type: string
+          description: Plan name as printed on the card.
+          example: Acme PPO Choice
+        groupNumber:
+          type: string
+          description: Employer group number as printed on the card.
+          example: GRP-44120
+        issuedDate:
+          type: string
+          format: date
+          description: Date the card document was issued.
+          example: '2025-11-14'
+
+    Error:
+      type: object
+      description: Standard error payload returned by Member Services.
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code.
+          example: MEMBER_NOT_FOUND
+        message:
+          type: string
+          description: Human-readable description of the failure.
+          example: No card document is on file for this member.

@@ -1,0 +1,17 @@
+{
+  "name": "change-scout",
+  "version": "0.1.0",
+  "description": "Recovers the architectural context around a proposed change before implementation begins, for enterprise integration developers maintaining services that span multiple systems of record.",
+  "author": {
+    "name": "Catherine Scannell",
+    "url": "https://github.com/catscan67"
+  },
+  "license": "MIT",
+  "keywords": [
+    "impact-analysis",
+    "architecture",
+    "enterprise-integration",
+    "openapi",
+    "healthcare"
+  ]
+}

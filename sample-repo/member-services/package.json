@@ -1,0 +1,14 @@
+{
+  "name": "member-services",
+  "version": "1.4.0",
+  "private": true,
+  "description": "Member-facing read APIs over Acme Health Plan systems of record.",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test",
+    "validate:openapi": "../../node_modules/.bin/redocly lint openapi/card-api.yaml"
+  }
+}

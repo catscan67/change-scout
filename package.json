@@ -1,0 +1,16 @@
+{
+  "name": "change-scout",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dependency manifest for the Change Impact Scout plugin's OpenAPI validation hook.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "setup": "npm ci --ignore-scripts"
+  },
+  "devDependencies": {
+    "@redocly/cli": "2.46.1"
+  }
+}

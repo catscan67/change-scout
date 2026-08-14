@@ -1,0 +1,286 @@
+# Change Impact Scout
+
+A Claude Code plugin that recovers the architectural context around a proposed change
+**before** implementation begins. In one sentence: it helps a developer understand what else
+they might break before they change the code.
+
+## Who this is for
+
+**Enterprise integration developers at regulated healthcare payers** — the people maintaining
+services that span multiple systems of record (member enrollment, plan administration,
+document management). They receive requirements that sound simple and turn out to have
+architectural implications invisible in the code they first open.
+
+The plugin does not inspect live enterprise systems. It reads the architectural evidence
+already in the repository — code, OpenAPI specifications, tests, configuration, integration
+definitions, documentation — and reconstructs the context around a proposed change.
+
+## What it produces
+
+An **impact assessment**, not a plan and not a diff, written for the person deciding whether
+the change belongs in this release:
+
+1. **Decision posture** — can work begin, and why or why not
+2. **What is changing** — the capability, and the assumption that no longer holds
+3. **What decision-makers need to know** — findings tagged `[Severity · Evidence status]`
+4. **Decisions and dependencies** — what must be decided, by whom, and what it blocks
+5. **Known gaps** — what the repository could not answer, and who to ask
+
+Typically 800–1,000 words, with per-section budgets, so it stays readable by a business
+stakeholder while every conclusion remains traceable through line-level citations. Observed
+across runs: 824, 843, 972, and 1,112 words.
+
+## Prerequisites
+
+**Node.js 20.19+ or 22.12+** (required by the pinned linter). Nothing else — no accounts, no
+credentials, no API keys beyond your existing Claude Code authentication, no live systems, no
+configuration.
+
+## Install and validate
+
+```bash
+git clone <this-repo> change-scout
+cd change-scout
+
+# One-time setup: install the pinned OpenAPI linter.
+# This is the only time this plugin downloads anything, and you initiate it.
+# --ignore-scripts blocks package lifecycle scripts; verified to work without them.
+npm ci --ignore-scripts
+
+# Validate the plugin manifest (strict mode fails on unrecognized fields)
+claude plugin validate . --strict
+
+# Inspect what it loads and what it costs
+claude --plugin-dir . plugin details change-scout
+```
+
+`npm ci` installs the exact version in `package-lock.json` and verifies it against a published
+integrity hash. The linter is a single self-contained package with **zero transitive
+dependencies**, so the entire supply chain for the deterministic layer is one pinned,
+hash-verified artifact.
+
+Skipping setup is safe: the hook detects the missing linter and tells you how to install it
+rather than fetching anything.
+
+Expected output:
+
+```
+✔ Validation passed
+
+Component inventory
+  Skills (2)  enterprise-change-analysis, impact
+  Agents (1)  impact-analyzer
+  Hooks (1)   PostToolUse  (harness-only — no model context cost)
+
+Projected token cost
+  Always-on:   ~277 tok   added to every session
+
+Per-component (rounded)
+  component                   always-on  on-invoke
+  enterprise-change-analysis       ~140        ~4k
+  impact-analyzer                  ~110      ~2.2k
+  impact                            ~30       ~360
+```
+
+The inventory counts the `/impact` slash command under "Skills" — that is the CLI's grouping
+for invokable prompt components, not a second methodology file. There is one skill, one agent,
+one command, one hook.
+
+## Demo walkthrough
+
+The repository bundles a fictional payer service, `sample-repo/member-services/`, carrying the
+kinds of evidence the plugin is built to read.
+
+**Run the demo from inside the sample repository, not from the plugin root:**
+
+```bash
+cd sample-repo/member-services
+claude --plugin-dir ../..
+```
+
+> **Why the `cd` matters.** The agent analyzes its working directory. Started at the plugin
+> root it would read this README, the skill, and the agent definition — and this README
+> describes what the assessment is supposed to find. The demo would then be measuring reading
+> comprehension rather than architectural analysis. Running from the sample repo keeps the
+> agent's evidence to the repository under analysis.
+
+Then, in the session:
+
+```
+/change-scout:impact Starting January 1, 2027, members need to be able to retrieve their new pharmacy ID card through the Member Card API.
+```
+
+`/change-scout:impact` is the canonical form and always resolves to this plugin. Bare
+`/impact` also works and is fine for everyday use — but a plugin's short name yields to any
+skill or command already using that name, so a machine with its own `/impact` would silently
+run that instead. The qualified form removes the ambiguity, which is why the demo uses it.
+
+### What a good assessment surfaces
+
+The request sounds like adding a card type. The evidence says otherwise, and no single file
+says any of this — each conclusion requires joining two artifacts:
+
+| Joined from | Conclusion |
+|---|---|
+| The contract + the retrieval code | The published API has no way to express *which* card; supporting a second one changes the contract, and consumers depend on current behavior |
+| The plan resolver + the architecture doc | Plan type is a hardcoded constant, so multi-plan members the architecture describes cannot be represented; and nothing in the code models effective dates, so it cannot say what a request returns either side of the cutover |
+| The ownership doc + the orchestration code | Identity validation is owned upstream; that trust boundary constrains which designs are admissible |
+| The test suite + the architecture doc | The two highest-risk scenarios this change creates — a second card type, and a member holding both — have no coverage |
+| The architecture doc against itself | Its capability table and its membership model disagree; the documentation has drifted from intent |
+
+### Hook demonstration
+
+With a session open in the sample repo, ask Claude to make any edit to
+`openapi/card-api.yaml`. The PostToolUse hook lints the contract automatically and reports
+failures back into the session. Delete the `title:` line from `info:` and the linter reports
+the document invalid; make a valid edit and it passes silently. Edit any other file and the
+hook exits without linting.
+
+## Before and after
+
+Baselines were captured **before any component was written**, so the comparison is measured
+rather than asserted. Five runs of Claude Code without the plugin, on the same repository,
+with the same change request, on the same model.
+
+| | Claude Code (implementing) ×3 | Claude Code (plan mode) ×2 | **With this plugin** |
+|---|---|---|---|
+| Files changed | 7–9 files, +206 to +291 lines | 0 | **0** |
+| Found the four planted findings | yes | yes | yes |
+| Reported the documentation drift | **0/3** — silently overwrote it | **0/2** — filed it as a doc chore | **yes** |
+| Led with the invalidated assumption | **0/3** | **0/2** | **yes** |
+| Treated coverage period as a retrieval input | **0/3** | **0/2** | **yes** |
+| Invented identifiers into docs it does not own | **3/3** — wrote a real in-use routing number into an upstream system's documentation | 0/2 | **no** |
+| Escalated the contract decision to its owner | **0/3** | **0/2** — surfaced the question, then chose the design anyway | **yes** |
+| Output | code plus a summary | 1,980 and 2,651 words | **824–1,112 words** |
+| Cost / duration | $1.07–$1.62, ~3 min | $2.72–$2.82, ~8 min | **$0.42–$0.46, ~2¼ min** |
+
+**The honest summary:** unaided Claude Code is strong here. It finds the issues. What it does
+not do is report that documentation has drifted from intent, name the assumption the change
+invalidates before listing blockers, or stop at the point where a decision belongs to someone
+else. Plan mode is the closest competitor and is included deliberately — omitting it would
+leave the obvious question unanswered.
+
+The full baseline transcripts were captured separately and are **deliberately excluded from
+this repository**. Including them would place a near-complete analysis of the demo scenario
+inside the repository the agent analyzes, and the plugin could no longer be said to have
+recovered that context independently. No demo or validation step depends on them.
+
+## What this plugin executes and when
+
+Complete disclosure of everything that runs.
+
+| Trigger | What runs | Network |
+|---|---|---|
+| **You run `npm ci --ignore-scripts`** (once, deliberately) | npm downloads `@redocly/cli` at the exact version in `package-lock.json`, verified against its integrity hash | **Yes — this is the only download, and you initiate it** |
+| An `openapi/*.yaml` or `*.yml` file is edited | `scripts/validate-openapi.sh` → the already-installed local `node_modules/.bin/redocly` | None |
+| You type `/change-scout:impact` | The `impact-analyzer` subagent reads files and sends what it reads to Claude as model input | Model API only — see below |
+| Anything else | Nothing | — |
+
+- **Nothing is downloaded at runtime.** The hook executes only the pinned binary inside this
+  plugin's `node_modules`, resolved from the script's own location — never `npx`, never a
+  registry, never a global install or `$PATH` lookup, so the version that runs is the version
+  in the lockfile. If it is not installed, the hook fails with setup instructions rather than
+  fetching anything.
+- **The hook is a short, commented shell script.** It reads the edited file's path, exits
+  immediately unless that path is an OpenAPI contract, lints it, and returns the linter's own
+  output. No reasoning, no model call, no state, no network.
+- **The agent cannot modify anything.** Its tool grant is `Read`, `Grep`, `Glob` — no `Edit`,
+  no `Write`, and deliberately no `Bash`, since a shell that can read files can also write
+  them. Verified by running it with permissions fully bypassed: zero files changed, because no
+  mutating tool exists in its grant. That is a property of the tool grant, not a promise in a
+  prompt.
+- **The agent never fires by itself.** `disable-model-invocation: true` means it runs only
+  when you invoke the command.
+
+### What leaves your machine
+
+This is a Claude Code plugin, so being precise matters more than being reassuring:
+
+- **File contents the agent reads become model input** and are processed by whichever Claude
+  service your Claude Code installation is configured against, under your organization's plan
+  and data-handling settings. The plugin adds no telemetry and contacts no third-party service,
+  but "runs locally" describes the *tools*, not the analysis.
+- **The dependency install is a real network operation** — deliberate, one-time, pinned, and
+  integrity-checked, rather than automatic and mutable.
+
+**If you work with protected health information or other regulated data:** confirm your
+organization's approval, retention settings, and data residency before pointing this at a real
+repository, and confirm Business Associate Agreement and zero-data-retention coverage where
+applicable. Those are properties of your Claude configuration, not of this plugin, and this
+plugin cannot grant them.
+
+### Limits of the agent's containment
+
+The agent is instructed to treat repository contents as untrusted evidence rather than
+instructions, to stay within the repository under analysis, and never to read credential stores
+or reproduce secret values. **Those controls are model-enforced, not filesystem containment.**
+`Read`, `Grep`, and `Glob` can technically address files outside the repository unless Claude
+Code is launched inside a filesystem sandbox.
+
+Tested behavior: asked to read a canary file outside the repository, the agent refused and
+identified the request as out of scope. That is reassuring, and it is not a guarantee — it is
+the model behaving well, not the system preventing the action. For regulated use, run analysis
+in a sandbox that permits repository reads, blocks reads outside the approved workspace, denies
+network access during analysis, and excludes credentials from the mounted environment.
+
+### Independent security review
+
+This plugin was reviewed with [Trust Issues](https://github.com/howshannon/trust-issues), a
+third-party pre-install repository scanner, followed by a manual multi-persona review. The
+first review returned **GO WITH MITIGATIONS** and found no malware, credential harvesting,
+obfuscation, hidden instructions, or exfiltration. It also found two material issues that are
+fixed in this version: the hook previously used `npx` to fetch and execute a mutable linter
+version automatically on file edit, and this section previously overstated how local the
+plugin's operation is. Both were corrected before the first commit.
+
+## Design principle
+
+**AI reasoning where architectural judgment is required; deterministic tooling where rules can
+be enforced.** The agent reasons about impact. The hook validates contracts without reasoning
+— a linter either passes or it doesn't, and asking a model to decide that would be slower,
+costlier, and less reliable.
+
+**The cost corollary.** The deterministic layer runs for **zero model tokens** — the hook is a
+shell script. The plugin adds **~277 tokens** to a session simply by existing, which is the
+component descriptions and nothing more. The expensive part is the methodology, and it is paid
+only when it fires. Agent runs are **deliberate** — invoked through `/impact`, never
+auto-triggered — and **bounded** by a `maxTurns` ceiling. The model is specified by tier alias
+(`sonnet`) rather than a pinned version string, so the plugin survives model turnover.
+
+## Why there is no MCP server
+
+Version 1 analyzes evidence inside a repository, which Claude Code's built-in tools already
+read well. Adding an MCP server here would add installation burden, a configuration surface,
+and a trust surface without adding capability — surface area to check a box.
+
+MCP belongs in the enterprise version of this plugin, where the genuinely missing evidence
+lives: Confluence for architecture decision records, Jira for the change history behind a
+service, an API catalog or gateway for the consumer registry the repository can only claim to
+know. Every assessment this plugin produces names those gaps and routes them to a human — and
+each named gap is a candidate MCP integration. The gaps report is the roadmap.
+
+## How it is built
+
+482 lines across five components, each small enough to read in one sitting.
+
+| Path | What it is | Who reads it |
+|---|---|---|
+| `skills/enterprise-change-analysis/SKILL.md` | The method — capability, assumptions, contracts, ownership, trust boundaries, dependencies, time and state, test coverage, decision gates. Useful on its own, without the agent | A person, or any agent that preloads it |
+| `agents/impact-analyzer.md` | The investigator. Read-only tools, tier-alias model, bounded turns, preloads the skill | Claude Code, when the command delegates |
+| `skills/impact/SKILL.md` | The entry point. Delegates, then returns the agent's report verbatim. `disable-model-invocation: true` keeps it yours to trigger — Claude never fires it on its own | You |
+| `hooks/hooks.json` | Registers the PostToolUse hook | Claude Code, at startup |
+| `scripts/validate-openapi.sh` | Lints an edited OpenAPI contract | The hook |
+| `sample-repo/member-services/` | A fictional payer service used to demonstrate and test | The agent, during the demo |
+
+## Known limitations
+
+- **The repository is the evidence boundary, not the enterprise.** Production consumers,
+  release calendars, ownership, and regulatory obligations usually live elsewhere. The
+  assessment names these as gaps rather than guessing — but it cannot resolve them.
+- **`sample-repo/member-services/` is not a runnable system.** It is evidence for a
+  demonstration. `npm test` passes and the contract lints; there is no server.
+- **Acme Health Plan does not exist.** The scenario is fictional.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
