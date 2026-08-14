@@ -5,7 +5,7 @@
   "description": "Dependency manifest for the Change Impact Scout plugin's OpenAPI validation hook.",
   "license": "MIT",
   "engines": {
-    "node": ">=20"
+    "node": ">=20.19.0 <21.0.0 || >=22.12.0"
   },
   "scripts": {
     "setup": "npm ci --ignore-scripts"

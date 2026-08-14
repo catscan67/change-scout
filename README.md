@@ -32,7 +32,7 @@ across runs: 824, 843, 972, and 1,112 words.
 
 ## Prerequisites
 
-**Node.js 20.19+ or 22.12+** (required by the pinned linter). Nothing else — no accounts, no
+**Node.js 20.19–20.x or 22.12+** (required by the pinned linter; declared in `engines`). Nothing else — no accounts, no
 credentials, no API keys beyond your existing Claude Code authentication, no live systems, no
 configuration.
 
@@ -181,9 +181,20 @@ Complete disclosure of everything that runs.
   registry, never a global install or `$PATH` lookup, so the version that runs is the version
   in the lockfile. If it is not installed, the hook fails with setup instructions rather than
   fetching anything.
+- **The analyzed repository cannot supply executable configuration.** Redocly normally
+  discovers a `redocly.yaml` from the working directory, and that file can declare `plugins` —
+  JavaScript modules the linter imports and *executes*. So a hostile repository could run its
+  own code simply because you edited an OpenAPI file. The hook passes this plugin's own
+  reviewed config explicitly with `--config`, which suppresses that discovery. Regression-tested
+  with a canary plugin declared from the repository root, from a nested directory, from beside
+  the contract, and with the working directory set to the contract's own folder: the canary
+  never executes.
+- **No network calls at runtime.** Telemetry and update checks are disabled explicitly
+  (`REDOCLY_TELEMETRY=off`, `REDOCLY_SUPPRESS_UPDATE_NOTICE=true`), and a contract containing
+  remote `$ref` values is refused rather than resolved, because resolving one would fetch it.
 - **The hook is a short, commented shell script.** It reads the edited file's path, exits
   immediately unless that path is an OpenAPI contract, lints it, and returns the linter's own
-  output. No reasoning, no model call, no state, no network.
+  output. No reasoning, no model call, no state.
 - **The agent cannot modify anything.** Its tool grant is `Read`, `Grep`, `Glob` — no `Edit`,
   no `Write`, and deliberately no `Bash`, since a shell that can read files can also write
   them. Verified by running it with permissions fully bypassed: zero files changed, because no
@@ -225,13 +236,26 @@ network access during analysis, and excludes credentials from the mounted enviro
 
 ### Independent security review
 
-This plugin was reviewed with [Trust Issues](https://github.com/howshannon/trust-issues), a
-third-party pre-install repository scanner, followed by a manual multi-persona review. The
-first review returned **GO WITH MITIGATIONS** and found no malware, credential harvesting,
-obfuscation, hidden instructions, or exfiltration. It also found two material issues that are
-fixed in this version: the hook previously used `npx` to fetch and execute a mutable linter
-version automatically on file edit, and this section previously overstated how local the
-plugin's operation is. Both were corrected before the first commit.
+This plugin was reviewed twice with [Trust Issues](https://github.com/howshannon/trust-issues),
+a third-party pre-install repository scanner, each pass followed by a manual multi-persona
+review. Neither pass found malware, credential harvesting, obfuscation, hidden instructions, or
+exfiltration. Both found real problems worth fixing.
+
+**First pass** flagged that the hook used `npx` to fetch and execute a mutable linter version
+automatically on every OpenAPI edit, and that this section overstated how local the plugin's
+operation is. Fixed by pinning the linter to an exact lockfile-verified version installed
+through an explicit setup step, and by rewriting the disclosures above.
+
+**Second pass** found the subtler version of the same class of problem: the *binary* was now
+trusted and pinned, but Redocly still loaded its *configuration* from the repository being
+analyzed — and that configuration can import and execute JavaScript. A repository could run its
+own code by shipping a `redocly.yaml`. Confirmed by reproducing it, then fixed by forcing this
+plugin's own config with `--config`, disabling telemetry and update checks, refusing remote
+`$ref` values, and adding the regression tests described above.
+
+That second finding is the more instructive one. The first fix made the executable trustworthy;
+it did not make what the executable *reads* trustworthy. Trusted tooling loading untrusted
+configuration from a working tree is a general pattern worth looking for, not a Redocly quirk.
 
 ## Design principle
 
@@ -261,7 +285,7 @@ each named gap is a candidate MCP integration. The gaps report is the roadmap.
 
 ## How it is built
 
-482 lines across five components, each small enough to read in one sitting.
+519 lines across six components, each small enough to read in one sitting.
 
 | Path | What it is | Who reads it |
 |---|---|---|
@@ -269,7 +293,8 @@ each named gap is a candidate MCP integration. The gaps report is the roadmap.
 | `agents/impact-analyzer.md` | The investigator. Read-only tools, tier-alias model, bounded turns, preloads the skill | Claude Code, when the command delegates |
 | `skills/impact/SKILL.md` | The entry point. Delegates, then returns the agent's report verbatim. `disable-model-invocation: true` keeps it yours to trigger — Claude never fires it on its own | You |
 | `hooks/hooks.json` | Registers the PostToolUse hook | Claude Code, at startup |
-| `scripts/validate-openapi.sh` | Lints an edited OpenAPI contract | The hook |
+| `scripts/validate-openapi.sh` | Lints an edited OpenAPI contract, using only trusted local inputs | The hook |
+| `redocly.yaml` | The plugin's own linter config, forced with `--config` so the analyzed repository cannot supply executable configuration | The linter |
 | `sample-repo/member-services/` | A fictional payer service used to demonstrate and test | The agent, during the demo |
 
 ## Known limitations

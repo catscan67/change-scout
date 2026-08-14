@@ -1,0 +1,14 @@
+# Trusted, plugin-owned Redocly configuration.
+#
+# The validation hook passes this file explicitly with --config so the linter
+# never discovers a redocly.yaml from the repository being analyzed. That
+# matters: Redocly configuration can declare `plugins`, which are JavaScript
+# modules the linter imports and executes. Without this file, an OpenAPI edit
+# in a hostile repository would run that repository's own code.
+#
+# Two rules for anyone editing this file:
+#   - no `plugins` entries, ever
+#   - no `extends` entry that resolves to a URL — built-in rulesets only
+
+extends:
+  - recommended

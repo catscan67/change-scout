@@ -5,10 +5,10 @@
   "description": "Member-facing read APIs over Acme Health Plan systems of record.",
   "license": "UNLICENSED",
   "engines": {
-    "node": ">=20"
+    "node": ">=20.19.0 <21.0.0 || >=22.12.0"
   },
   "scripts": {
     "test": "node --test",
-    "validate:openapi": "../../node_modules/.bin/redocly lint openapi/card-api.yaml"
+    "validate:openapi": "../../node_modules/.bin/redocly lint --config ../../redocly.yaml openapi/card-api.yaml"
   }
 }

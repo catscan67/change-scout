@@ -5,18 +5,26 @@
 # Runs as a PostToolUse hook. Deterministic: it lints and reports, it does not
 # reason and it never calls a model.
 #
-# This script makes NO network calls and installs nothing. It runs only the
-# linter already installed in the plugin's own node_modules, at the exact
-# version pinned in package-lock.json. If that binary is absent it fails with
-# setup instructions rather than fetching anything.
+# Three properties this script is responsible for, in order of importance:
+#
+#   1. It runs only the linter installed in this plugin's own node_modules, at
+#      the exact version pinned in package-lock.json. It never fetches anything.
+#   2. It forces this plugin's own Redocly configuration. Redocly otherwise
+#      discovers redocly.yaml from the working directory, and that file can
+#      declare `plugins` — JavaScript modules the linter imports and executes.
+#      Without --config, editing an OpenAPI file in a hostile repository would
+#      run that repository's own code.
+#   3. It makes no network calls: telemetry and update checks are disabled, and
+#      contracts containing remote $ref values are refused rather than resolved.
 
 set -euo pipefail
 
-# Locate the plugin root from this script's own path, so the binary we run is
-# always the pinned local one — never a global install, never $PATH.
+# Locate the plugin root from this script's own path, so the binary and config
+# are always the trusted local ones — never $PATH, never the working directory.
 SCRIPT_DIR=$(cd -- "$(dirname -- "$0")" && pwd)
 PLUGIN_ROOT=$(dirname -- "$SCRIPT_DIR")
 REDOCLY="$PLUGIN_ROOT/node_modules/.bin/redocly"
+REDOCLY_CONFIG="$PLUGIN_ROOT/redocly.yaml"
 
 # Claude Code sends the tool call as JSON on stdin. Node is a prerequisite of
 # this plugin, so we use it to read the edited file's path.
@@ -30,7 +38,7 @@ case "$FILE" in
   *) exit 0 ;;
 esac
 
-# The linter must already be installed. We never acquire it here.
+# The linter and its trusted configuration must already be present.
 if [ ! -x "$REDOCLY" ]; then
   echo "OpenAPI validation skipped: linter not installed." >&2
   echo "Run the one-time setup from the plugin root:" >&2
@@ -38,7 +46,22 @@ if [ ! -x "$REDOCLY" ]; then
   exit 2
 fi
 
-if OUTPUT=$("$REDOCLY" lint "$FILE" 2>&1); then
+if [ ! -f "$REDOCLY_CONFIG" ]; then
+  echo "OpenAPI validation skipped: trusted config missing at $REDOCLY_CONFIG" >&2
+  exit 2
+fi
+
+# Remote references would be fetched over the network during linting. Refuse.
+if grep -qE '\$ref:.*https?://' "$FILE"; then
+  echo "OpenAPI validation skipped: $FILE contains remote \$ref values." >&2
+  echo "This hook does not resolve references over the network." >&2
+  exit 2
+fi
+
+# REDOCLY_TELEMETRY / REDOCLY_SUPPRESS_UPDATE_NOTICE: no phoning home, no
+# version check. --config: our configuration, never the analyzed repository's.
+if OUTPUT=$(REDOCLY_TELEMETRY=off REDOCLY_SUPPRESS_UPDATE_NOTICE=true \
+            "$REDOCLY" lint --config "$REDOCLY_CONFIG" "$FILE" 2>&1); then
   exit 0
 fi
 
