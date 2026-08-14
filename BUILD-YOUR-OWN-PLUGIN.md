@@ -38,17 +38,29 @@ The investigator. Runs in its own context, returns a conclusion instead of a tra
 can write them. Also set `model:` to a tier alias so it survives model turnover, and `maxTurns:`
 to bound cost. → **Appendix C**
 
-**4. The command** — `skills/<name>/SKILL.md`
+**4. The command skill** — `skills/<name>/SKILL.md`
 The front door: takes what you typed, hands it to the agent, returns the answer. Two settings do
 real work. `disable-model-invocation: true` means only *you* fire it, never Claude on its own. And
 tell it to return the agent's report **verbatim** — otherwise the main session will tidy your
 structured output into prose and strip the tags. Mine did. → **Appendix D**
 
-**5. The hook** — `hooks/hooks.json` + `scripts/<check>.sh`
-The deterministic half: a rule that runs on a file event, for zero model tokens. Use it only where
-code can decide reliably — schema parses, migration has a rollback, contract lints. A `PostToolUse`
-hook runs *after* the edit; it doesn't block, it reports back so the model fixes it in the same
-turn. → **Appendix E**
+**5. The hooks** — `hooks/hooks.json` + `scripts/<check>.sh`
+The deterministic half: your rule runs on an event, for zero model tokens. Use hooks only where
+code can decide reliably — a schema parses, a migration has a rollback, a contract lints.
+
+*What you can respond to.* There are about thirty events; four cover most needs.
+`PreToolUse` fires before a tool runs and **can block it** — use it to protect paths that must
+never be edited. `PostToolUse` fires after, and cannot block; exit 2 sends your message back to
+Claude so it fixes the problem in the same turn. `UserPromptSubmit` fires before Claude sees what
+you typed and can inject standing context. `SessionStart` runs once when a session opens.
+
+*What you can do.* Validate (lint, schema, policy), block (`PreToolUse`), inject context
+(`UserPromptSubmit`, `SessionStart`), or notify (`Stop`).
+
+*What files you may need.* Registration (`hooks/hooks.json`) and the script itself are the
+minimum. **If your script runs a third-party tool, you need three more:** a `package.json` pinning
+an exact version, the committed lockfile that verifies it, and that tool's own config file which
+you pass explicitly. Plus a line in your README telling people to run setup once. → **Appendix E**
 
 ## Build order
 
@@ -100,6 +112,19 @@ product. Without a baseline you will ship a confident, false claim.
 
 Test adversarially too: put a file in the repo that tries to instruct the agent, and confirm it
 *reports* that rather than obeying it.
+
+## Go deeper
+
+This page is the decisions; the official docs are the reference.
+
+| Topic | Where |
+|---|---|
+| Plugin structure and packaging | [Create plugins](https://code.claude.com/docs/en/plugins) · [Plugins reference](https://code.claude.com/docs/en/plugins-reference) |
+| Skills — frontmatter, invocation control, naming | [Extend Claude with skills](https://code.claude.com/docs/en/skills) |
+| Agents — every frontmatter field, tool lists, models | [Create custom subagents](https://code.claude.com/docs/en/sub-agents) |
+| Hooks — all ~30 events, JSON output, exit codes | [Automate actions with hooks](https://code.claude.com/docs/en/hooks-guide) · [Hooks reference](https://code.claude.com/docs/en/hooks) |
+| MCP servers, when you get there | [Connect Claude Code to tools via MCP](https://code.claude.com/docs/en/mcp) |
+| Permissions and settings files | [Claude Code settings](https://code.claude.com/docs/en/settings) |
 
 ## When to add MCP
 
@@ -213,6 +238,21 @@ show what you got — do not write an assessment of your own to fill the gap.
 
 ## Appendix E — the hook
 
+### Events, exit codes
+
+| Event | Fires | Can block? |
+|---|---|---|
+| `PreToolUse` | before a tool call | **yes** |
+| `PostToolUse` | after a tool call succeeds | no |
+| `UserPromptSubmit` | before Claude sees your prompt | **yes** |
+| `SessionStart` | when a session opens | no |
+
+Exit **0** passes silently. Exit **2** blocks on events that can block; on the others your stderr
+goes back to Claude as feedback. Any other non-zero is a non-blocking error notice.
+
+### The minimum: registration + script
+
+
 `hooks/hooks.json`
 
 ```json
@@ -238,6 +278,44 @@ echo "Migration has no rollback: $FILE" >&2
 echo "Expected: ${FILE%.sql}.down.sql" >&2
 exit 2    # exit 2 hands stderr back to Claude as feedback on the edit
 ```
+
+### If your script runs a third-party tool, three more files
+
+The example above needs nothing installed. The moment your check shells out to a real linter or
+scanner, you own its supply chain — and these three files are how you keep it honest.
+
+**`package.json`** at plugin root — an exact version, never a range:
+
+```json
+{
+  "name": "release-check",
+  "private": true,
+  "scripts": { "setup": "npm ci --ignore-scripts" },
+  "devDependencies": { "some-linter": "3.2.1" }
+}
+```
+
+**`package-lock.json`** — commit it. `npm ci` installs exactly what it records and verifies it
+against a published hash, so you get the package you asked for or an error.
+
+**The tool's own config**, e.g. `linter-config.yaml` at plugin root — and pass it explicitly:
+
+```bash
+"$PLUGIN_ROOT/node_modules/.bin/some-linter" --config "$PLUGIN_ROOT/linter-config.yaml" "$FILE"
+```
+
+That `--config` is not cosmetic. Most tools search the working directory for their own config,
+which means **the repository being analyzed gets to configure the tool you run on it** — and many
+config formats can load plugins, which is to say, execute code. Forcing your own config is what
+stops a hostile repo from running its code through your trusted linter.
+
+Finally, in your script, refuse to run rather than fetching anything:
+
+```bash
+[ -x "$TOOL" ] || { echo "Run 'npm ci --ignore-scripts' in the plugin root first." >&2; exit 2; }
+```
+
+And put that setup command in your README, because a fresh clone will not have it.
 
 Verified: this example validates with `--strict`, loads as two skills, one agent, and one hook,
 and the script returns exit 2 for a migration with no rollback, exit 0 once the rollback exists,
