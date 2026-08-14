@@ -222,6 +222,13 @@ lives: **Confluence** for architecture decision records, **Jira** for the change
   guarantee, and this plugin does not implement one — it is an environmental control, not a
   property this shell script can provide portably.
 
+## Building your own
+
+[BUILD-YOUR-OWN-PLUGIN.md](BUILD-YOUR-OWN-PLUGIN.md) is a one-page path for an engineer who
+wants a plugin like this for a different workflow — release readiness, incident handoff, CVE
+triage. It starts with four questions about your team, not with file formats, and it includes
+the things that cost me time so they don't cost you the same.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
