@@ -154,9 +154,13 @@
   /* -- you verify ----------------------------------------- */
   ul.checks {
     margin: 0; padding: 0; list-style: none;
-    display: grid; gap: 18px 34px; grid-template-columns: repeat(2, 1fr);
+    columns: 2; column-gap: 34px;
   }
-  ul.checks li { display: grid; grid-template-columns: 16px 1fr; gap: 10px; align-items: start; font-size: 14px; }
+  ul.checks li {
+    display: grid; grid-template-columns: 16px 1fr; gap: 10px; align-items: start; font-size: 14px;
+    break-inside: avoid; -webkit-column-break-inside: avoid; margin-bottom: 18px;
+  }
+  ul.checks li:last-child { margin-bottom: 0; }
   ul.checks li::before {
     content: ""; width: 13px; height: 13px; margin-top: 5px;
     border: 1.5px solid var(--clay); border-radius: 2px;
@@ -247,7 +251,8 @@
   .links .sep { color: var(--rule); padding: 0 8px; }
 
   @media (max-width: 860px) {
-    ol.questions, ul.checks { grid-template-columns: 1fr; }
+    ol.questions { grid-template-columns: 1fr; }
+    ul.checks { columns: 1; }
     dl.ex-grid { grid-template-columns: 1fr; gap: 3px 0; }
     dl.ex-grid dd { margin-bottom: 9px; }
     .flow { flex-direction: column; align-items: stretch; gap: 10px; }
@@ -522,10 +527,9 @@ and wait for my approval.</code></pre>
         instruction in a project file telling the specialist to ignore its job. It should flag the instruction,
         not follow it.</span></li>
 
-      <li><span><b>Run it two more times.</b> You want the same behavior every time, not one lucky run.</span></li>
-
       <li><span><b>It beats plain Claude Code.</b> Run the same request three times without your plugin
-        loaded, then three times with it. Decide what a good answer looks like before you read either set.
+        loaded, then three times with it &mdash; three each way, because you are checking for consistent
+        behaviour rather than one lucky run. Decide what a good answer looks like before you read either set.
         If the plugin isn&rsquo;t better, it&rsquo;s the method that needs work &mdash; not the wiring.</span></li>
     </ul>
   </div>
