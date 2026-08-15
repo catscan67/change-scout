@@ -99,7 +99,7 @@ Settings worth understanding:
 
 | Setting | What it does |
 |---|---|
-| `tools: Read, Grep, Glob` | Read files, search inside files, find files by name. That is the complete list of what it can do — not a request, a limit |
+| `tools: Read, Grep, Glob` | Read files, search inside files, find files by name. That is the complete list of what it can do — not a request, a limit. It is also a *filter*: the worker gets these only if the session provides them, and can never gain one you didn't list. A surface without `Grep` and `Glob` leaves it holding `Read` alone — able to open a path it was handed, unable to discover anything |
 | `skills:` | Loads your method into the worker automatically at startup, so it always has it |
 | `model: sonnet` | Names a tier rather than a specific version, so the plugin keeps working when models are updated |
 | `maxTurns: 20` | A ceiling on steps before it must stop. Your cost control |
@@ -194,9 +194,9 @@ There are around thirty moments you can attach to. Four cover most needs:
 
 | Trigger | Good for | Can it stop the action? |
 |---|---|---|
-| `PreToolUse` | Preventing something | **Yes** — the only one that can |
+| `PreToolUse` | Preventing something | **Yes** — the only one that can stop a tool call |
 | `PostToolUse` | Checking a result after a file changes | No, but your message goes back to Claude, which usually fixes it immediately |
-| `UserPromptSubmit` | Adding standing context to every request | Yes |
+| `UserPromptSubmit` | Adding standing context to every request | Yes — but it stops the prompt, not a tool call |
 | `SessionStart` | Loading something once at the start | No |
 
 ### What — `scripts/check-migrations.sh`

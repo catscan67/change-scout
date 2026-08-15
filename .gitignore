@@ -5,6 +5,5 @@
 node_modules/
 npm-debug.log*
 
-# Nothing else belongs here. Working documents (TEST_PLAN.md, INTERVIEW_PREP.md)
-# and captured baseline transcripts live outside this repository by design —
-# see "Before and after" in README.md.
+# Nothing else belongs here. Working notes and captured baseline transcripts
+# live outside this repository by design — see "Before and after" in README.md.
