@@ -493,7 +493,8 @@ and wait for my approval.</code></pre>
 
   <!-- 3 &middot; You verify -->
   <div class="panel" role="tabpanel" id="panel-verify" aria-labelledby="tab-verify" tabindex="0" hidden>
-    <p class="lead">Check it by behavior. You never have to read the code Claude wrote.</p>
+    <p class="lead">Check it by behavior. You never have to read the code Claude wrote &mdash; but some of
+      these you run yourself and some you ask Claude to do, so each one says which.</p>
 
     <ul class="checks">
       <li><span><b>Claude Code recognizes the plugin.</b> Three steps, in your terminal, from inside
@@ -512,16 +513,19 @@ and wait for my approval.</code></pre>
 
       <li><span><b>It didn&rsquo;t change anything it wasn&rsquo;t supposed to.</b> If your plugin is only meant to analyze
         or report, make sure it didn&rsquo;t change any project files.
-        <span class="note"><code class="cmd">git status</code><span class="gloss">lists files that have changed</span></span>
+        <span class="note"><code class="cmd">git status</code><span class="gloss">lists files that have changed &mdash; or just ask Claude whether anything did</span></span>
         <span class="note">If files changed unexpectedly, the specialist may have been given permission to edit
         them. Ask Claude to review and reduce its permissions.</span></span></li>
 
       <li><span><b>The answer has the structure you asked for.</b> Make sure the final answer includes the
         sections and information you specified.</span></li>
 
-      <li><span><b>If you built a hook, it behaves three ways.</b> Break the rule on purpose and you get a clear
-        message; fix it and the check goes quiet; do something the rule doesn&rsquo;t apply to and it stays
-        quiet.</span></li>
+      <li><span><b>If you built a hook, it behaves three ways.</b> Ask Claude to break the rule on purpose and
+        you get a clear message; ask it to put the file right and the check goes quiet; ask for a change the
+        rule doesn&rsquo;t apply to and it stays quiet.
+        <span class="note">Ask Claude rather than editing the file yourself. A hook watches what Claude
+        does, so an edit you make in your own editor never reaches it &mdash; and a silent hook looks
+        broken when it is only unaware.</span></span></li>
 
       <li><span><b>The specialist doesn&rsquo;t follow instructions it finds inside your project.</b> Put a test
         instruction in a project file telling the specialist to ignore its job. It should flag the instruction,
