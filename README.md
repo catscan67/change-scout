@@ -190,7 +190,7 @@ Both results are reassuring, and neither is a guarantee — it is the model beha
 
 ### Independent security review
 
-This plugin was reviewed twice with [Trust Issues](https://github.com/howshannon/trust-issues), a third-party pre-install repository scanner created and shared  by my awesome friend Shannon Tran (https://www.linkedin.com/in/los-shangeles/).  Each pass was followed by a manual multi-persona review. Neither pass found malware, credential harvesting, obfuscation, hidden instructions, or exfiltration. Both found real problems worth fixing.
+This plugin was reviewed twice with [Trust Issues](https://github.com/howshannon/trust-issues), a third-party pre-install repository scanner by Shannon Tran. Each pass was followed by a manual multi-persona review. Neither pass found malware, credential harvesting, obfuscation, hidden instructions, or exfiltration. Both found real problems worth fixing.
 
 **First pass** flagged that the hook used `npx` to fetch and execute a mutable linter version automatically on every OpenAPI edit, and that this section overstated how local the plugin's operation is. Fixed by pinning the linter to an exact lockfile-verified version installed through an explicit setup step, and by rewriting the disclosures above.
 
