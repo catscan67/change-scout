@@ -235,9 +235,9 @@
   .ref { margin: 0; max-width: 800px; font-size: 13px; color: var(--ink-3); }
 
   .links p { margin: 0; font-size: 13px; color: var(--ink-3); line-height: 2; }
-  .links a { color: var(--clay-dark); text-decoration: none; border-bottom: 1px solid var(--clay-rule); }
-  .links a:hover { border-bottom-color: var(--clay); }
-  .links a:focus-visible { outline: 2px solid var(--clay-dark); outline-offset: 2px; }
+  .links a, .ref a { color: var(--clay-dark); text-decoration: none; border-bottom: 1px solid var(--clay-rule); }
+  .links a:hover, .ref a:hover { border-bottom-color: var(--clay); }
+  .links a:focus-visible, .ref a:focus-visible { outline: 2px solid var(--clay-dark); outline-offset: 2px; }
   .links .sep { color: var(--rule); padding: 0 8px; }
 
   @media (max-width: 860px) {
@@ -752,7 +752,7 @@ exit 2</code></pre>
     </div>
 
     <p class="ref">Deeper reference ships alongside this guide as
-      <code>PLUGIN-TECHNICAL-NOTES.md</code> — the same material plus granting
+      <a href="https://github.com/catscan67/change-scout/blob/main/PLUGIN-TECHNICAL-NOTES.md"><code>PLUGIN-TECHNICAL-NOTES.md</code></a> — the same material plus granting
       <code>Bash</code> safely, the alternative that keeps the specialist read-only, and the full
       reasoning behind each choice.</p>
   </div>

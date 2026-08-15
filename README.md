@@ -266,9 +266,13 @@ making for a rule a person could check by eye.
 
 ## Building your own
 
-[build-your-own-plugin.html](build-your-own-plugin.html) is a guide for anyone who knows how their
+**[Read the guide →](https://claude.ai/code/artifact/84f9d82d-129f-4fc0-a6b4-fbfc4ef33bd7)** — or
+open [build-your-own-plugin.html](build-your-own-plugin.html) in a browser from a clone. GitHub
+displays `.html` as source rather than rendering it, so use the link above to actually read it.
+
+It is a guide for anyone who knows how their
 team makes a decision and wants to package it up — release readiness, incident handoff, vendor
-review. Open it in a browser. You supply the workflow knowledge, Claude Code writes the files, and
+review. You supply the workflow knowledge, Claude Code writes the files, and
 the guide teaches you how to check what it built: what you decide, what you ask Claude to build,
 and what you verify before trusting it. Its worked example is deliberately a *different* workflow
 from this plugin, so you can see the pattern rather than copy the instance.
