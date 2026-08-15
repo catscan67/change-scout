@@ -517,6 +517,10 @@ and wait for my approval.</code></pre>
         <span class="note">If files changed unexpectedly, the specialist may have been given permission to edit
         them. Ask Claude to review and reduce its permissions.</span></span></li>
 
+      <li><span><b>The specialist doesn&rsquo;t follow instructions it finds inside your project.</b> Put a test
+        instruction in a project file telling the specialist to ignore its job. It should flag the instruction,
+        not follow it.</span></li>
+
       <li><span><b>The answer has the structure you asked for.</b> Make sure the final answer includes the
         sections and information you specified.</span></li>
 
@@ -527,11 +531,7 @@ and wait for my approval.</code></pre>
         does, so an edit you make in your own editor never reaches it &mdash; and a silent hook looks
         broken when it is only unaware.</span></span></li>
 
-      <li><span><b>The specialist doesn&rsquo;t follow instructions it finds inside your project.</b> Put a test
-        instruction in a project file telling the specialist to ignore its job. It should flag the instruction,
-        not follow it.</span></li>
-
-      <li><span><b>It beats plain Claude Code.</b> Run the same request three times without your plugin
+      <li><span><b>It beats plain Claude Code at the job you built it for.</b> Run the same request three times without your plugin
         loaded, then three times with it &mdash; three each way, because you are checking for consistent
         behaviour rather than one lucky run. Decide what a good answer looks like before you read either set.
         If the plugin isn&rsquo;t better, it&rsquo;s the method that needs work &mdash; not the wiring.</span></li>
