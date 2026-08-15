@@ -270,9 +270,9 @@ making for a rule a person could check by eye.
 
 ## Building your own
 
-**[Read the guide →](https://claude.ai/code/artifact/84f9d82d-129f-4fc0-a6b4-fbfc4ef33bd7)** — or
-open [build-your-own-plugin.html](build-your-own-plugin.html) in a browser from a clone. GitHub
-displays `.html` as source rather than rendering it, so use the link above to actually read it.
+**[Read the guide →](https://build-your-first-claude-code-plugin.netlify.app/)** — or open
+[build-your-own-plugin.html](build-your-own-plugin.html) in a browser from a clone. GitHub displays
+`.html` as source rather than rendering it, so use the link above to actually read it.
 
 It is a guide for anyone who knows how their
 team makes a decision and wants to package it up — release readiness, incident handoff, vendor
