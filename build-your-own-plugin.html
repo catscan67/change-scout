@@ -163,6 +163,12 @@
   }
   ul.checks b { font-weight: 600; }
 
+  /* Numbered sub-steps, for a check that is genuinely a sequence. */
+  .steps { display: flex; flex-direction: column; gap: 9px; margin-top: 9px; font-size: 13.5px; color: var(--ink-3); }
+  .steps > span { display: block; }
+  .steps b { color: var(--clay-dark); font-weight: 600; margin-right: 3px; }
+  .steps .cmd { display: block; width: max-content; max-width: 100%; margin-top: 5px; }
+
   .cmd {
     display: inline-block; margin-top: 5px; padding: 2px 7px;
     font-family: var(--mono); font-size: 11.5px;
@@ -485,12 +491,16 @@ and wait for my approval.</code></pre>
     <p class="lead">Check it by behavior. You never have to read the code Claude wrote.</p>
 
     <ul class="checks">
-      <li><span><b>Claude Code recognizes the plugin.</b> Start a session with your plugin folder
-        loaded &mdash; sitting inside the folder is not enough, you have to point Claude Code at it. Then ask
-        Claude to check that the plugin is valid and explain any problems, type <code class="cmd">/</code>,
-        and make sure your new command appears.
-        <span class="note"><code class="cmd">claude --plugin-dir .</code><span class="gloss">from inside your plugin folder</span></span>
-        <span class="note"><code class="cmd">claude plugin validate . --strict</code></span></span></li>
+      <li><span><b>Claude Code recognizes the plugin.</b> Three steps, in your terminal, from inside
+        your new plugin folder.
+        <span class="steps">
+          <span><b>1.</b> Check the files are shaped correctly.
+            <code class="cmd">claude plugin validate . --strict</code></span>
+          <span><b>2.</b> Start Claude Code and point it at your folder. Being inside the folder is not
+            enough &mdash; without this it loads no plugin and your command will not exist.
+            <code class="cmd">claude --plugin-dir .</code></span>
+          <span><b>3.</b> Type a forward slash and look for your command in the list that appears.</span>
+        </span></span></li>
 
       <li><span><b>The specialist actually ran.</b> Make sure Claude Code shows your specialist agent running
         before you see the final answer.</span></li>
