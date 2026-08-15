@@ -1,9 +1,9 @@
 # Technical notes and security appendix
 
-Companion to [BUILD-YOUR-OWN-PLUGIN.md](BUILD-YOUR-OWN-PLUGIN.md). You don't need this to build a
+Companion to the **Build Your First Claude Code Plugin** guide. You don't need this to build a
 working plugin — Claude Code will write these files for you. Read it when you want to see what the
-files actually look like, when you want to change one by hand, or **before you let an automatic
-check run an outside tool**, which is the one place where getting it wrong has real consequences.
+files actually look like, when you want to change one by hand, or **before you let a hook run an
+outside tool**, which is the one place where getting it wrong has real consequences.
 
 Worked example: a release-readiness plugin called `release-check`.
 
