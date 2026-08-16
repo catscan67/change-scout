@@ -132,7 +132,7 @@ comparison is measured rather than asserted.
 |---|---|---|
 | Changed project files during the "assessment" | 3 of 5 runs — 7–9 files each | **Never — the agent has no editing tools** |
 | Reported that the documentation contradicts itself *(the architecture document describes a single-card system and a multi-plan membership at once)* | 0 of 5 | **Yes** |
-| Led with the invalidated assumption | 0 of 5 | **Yes** |
+| Named the assumption the change breaks — first, before the findings | 0 of 5 | **Yes** |
 | Stopped at decisions owned by someone else | 0 of 5 | **Yes** |
 | Output | code, or a long plan | **A concise impact assessment** |
 
