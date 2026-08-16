@@ -31,18 +31,15 @@ traceable to repository evidence through line-level citations.
 **Prerequisite:** Node.js 20.19–20.x or 22.12+ (required by the pinned linter). Nothing else — no
 accounts, no credentials, no API keys beyond your existing Claude Code authentication.
 
+The `npm ci` step is the one-time install of the pinned OpenAPI linter — the only time this
+plugin downloads anything, and you initiate it. Validation is strict: unrecognized manifest
+fields fail. The last command shows what the plugin loads and what it costs.
+
 ```bash
 git clone https://github.com/catscan67/change-scout.git
 cd change-scout
-
-# One-time setup: install the pinned OpenAPI linter.
-# This is the only time this plugin downloads anything, and you initiate it.
 npm ci --ignore-scripts
-
-# Validate the plugin manifest (strict mode fails on unrecognized fields)
 claude plugin validate . --strict
-
-# Inspect what it loads
 claude --plugin-dir . plugin details change-scout
 ```
 
