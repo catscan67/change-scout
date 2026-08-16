@@ -463,34 +463,32 @@
     <div class="prompt">
       <div class="prompt-bar">
         <span>Starter prompt</span>
-        <button class="copy" type="button" data-copy="starter-full">Copy full prompt</button>
+        <button class="copy" type="button" data-copy="starter-prompt">Copy prompt</button>
       </div>
-      <pre class="starter"><code>I want to build a Claude Code plugin in this folder, for a
-recurring judgment call my team makes.
+      <pre class="starter"><code id="starter-prompt">I want to build a Claude Code plugin for a decision my team
+makes repeatedly.
 
   The decision: <span class="fill">[Q1]</span>
   The information they use: <span class="fill">[Q2]</span>
-  What requires judgment: <span class="fill">[Q3]</span>
-  The pass/fail rule: <span class="fill">[Q3]</span>
+  What requires judgment: <span class="fill">[Q3 &mdash; judgment]</span>
+  The clear rule: <span class="fill">[Q3 &mdash; rule, if there is one]</span>
   Who needs the answer: <span class="fill">[Q4]</span>
 
-Build only the pieces this workflow actually needs. Start with
-four: a manifest, a method skill, a specialist agent with the
-smallest permissions the job needs, and a command skill that
-starts the workflow.
+Use this simple pattern for the first version: a manifest, a
+method skill, a specialist agent with only the permissions it
+needs, and a command skill to start the workflow.
 
-Add a fifth &mdash; a hook &mdash; only if the pass/fail rule above is
-genuinely deterministic. If it is not, leave it out and tell
-me why.
+If Q3 includes a clear pass/fail rule, add a hook for it. If
+not, leave the hook out.
 
-Before creating any files, show me the plan in plain language
-and wait for my approval.</code></pre>
+Before you build anything, ask me about anything that's
+unclear. Then show me the structure you recommend, tell me
+what you're assuming, and explain the permissions the
+specialist needs. Wait for my approval before creating files.</code></pre>
     </div>
 
-    <p class="after"><b>The full prompt goes to your clipboard.</b> It adds the exact wording for each
-      piece, the minimum-permissions request, and the five things Claude must do before it writes anything:
-      ask what is unclear, show you the structure in plain language, name its assumptions, recommend the
-      smallest permissions the specialist needs, and wait for your approval.</p>
+    <p class="after"><b>Review the plan before you approve it.</b> You should understand what each
+      piece does and why it's there.</p>
   </div>
 
   <!-- 3 &middot; You verify -->
@@ -779,51 +777,6 @@ exit 2</code></pre>
 
 </section>
 </div>
-
-<div id="starter-full" hidden>I want to build a Claude Code plugin, in this folder, that helps my team with a
-recurring judgment call. Here's the workflow:
-
-  The decision: [your answer to Q1]
-  The information they use: [Q2]
-  What requires judgment: [Q3]
-  The pass/fail rule: [Q3]
-  Who needs the answer, and what they need to know: [Q4]
-
-Build only the pieces this workflow actually needs.
-
-Start with these four:
-
-  1. A manifest that names and describes it &mdash; call it [your-plugin-name].
-
-  2. A method skill containing the team's playbook above, written so a new
-     team member could follow it, ending with the exact sections the report
-     must contain.
-
-  3. A specialist agent that performs the investigation, given the smallest
-     set of permissions that can actually do this job &mdash; reading and searching
-     only, unless my workflow genuinely requires running commands.
-
-  4. A command skill that starts the workflow, hands the request to that
-     agent, returns the agent's report word for word, and never runs on
-     its own.
-
-Then add a fifth, but only if it is warranted:
-
-  5. A hook implementing the deterministic pass/fail rule I identified
-     above &mdash; only if that rule is genuinely deterministic. If it is not,
-     leave the hook out and tell me why. Do not add one merely to
-     complete the structure.
-
-Before creating any files:
-
-  - Ask me about anything that is unclear or missing.
-  - Show me the proposed plugin structure in plain language.
-  - Identify any assumptions you made.
-  - Recommend the minimum permissions the specialist needs.
-  - Wait for my approval.
-
-After I approve the plan, create the files and explain each one to me in plain
-language.</div>
 
 <script>
   (function () {
