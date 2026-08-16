@@ -159,25 +159,24 @@ implementation is deliberately small:
 
 ## Security and execution
 
-The impact analyzer is **read-only**: its tool grant is `Read`, `Grep`, and `Glob`, with no
-editing or shell tools — a capability constraint, not a prompt instruction.
+The Impact Analyzer is **read-only**. It can read and search files in the repository, but I did
+not give it tools that allow it to edit files or run shell commands.
 
-The OpenAPI hook uses a **pinned local validator**. It never downloads software when the hook
-runs, and it uses Change Scout's own validator configuration rather than configuration supplied by
-the repository being analyzed.
+The OpenAPI hook uses a **specific version of its validator** that is installed with the plugin.
+It doesn't download anything when the hook runs, and it uses its own configuration rather than
+configuration it finds in the repository it's checking.
 
-Repository contents the agent reads become Claude model input under your organization's Claude
-Code configuration. Change Scout adds no telemetry and contacts no third-party service. For
-regulated repositories, use your organization's approved Claude configuration and appropriate
-workspace and network controls.
+One thing to be aware of: the files the agent reads are sent to Claude for analysis. Change Scout
+itself doesn't add any telemetry or send data to another third-party service. If you're working
+with regulated or sensitive data, use the Claude Code configuration and security controls approved
+by your organization.
 
-The plugin went through **independent adversarial security review** during development — three
-passes with a third-party scanner, each followed by a manual multi-persona review. The first two
-passes found real issues in the original hook design, which were fixed before submission; the
-final pass, at the shipped commit, found no new problems.
+I also had the plugin **independently reviewed for security** several times while I was building
+it. Those reviews found issues in the original hook design that I wouldn't have caught myself. I
+worked through the findings, changed the design, and ran the reviews again before submission.
 
-**For the full disclosure — what executes and when, what leaves your machine, containment limits,
-the review findings and their fixes — see [SECURITY.md](SECURITY.md).**
+For the technical details, including what the reviews found and what changed, see
+[SECURITY.md](SECURITY.md).
 
 ## Design decisions
 
