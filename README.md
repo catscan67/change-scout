@@ -198,6 +198,18 @@ This plugin was reviewed twice with [Trust Issues](https://github.com/howshannon
 
 That second finding is the more instructive one. The first fix made the executable trustworthy; it did not make what the executable *reads* trustworthy. Trusted tooling loading untrusted configuration from a working tree is a general pattern worth looking for, not a Redocly quirk.
 
+**Third pass, at the release commit.** The shipped code was re-scanned before submission —
+the fourteen-category triage plus the adversarial persona review. No new findings: the one
+Medium-severity item is the transitive-reference limitation already documented under Known
+limitations, and the review independently corroborated the lockfile's integrity (the linter
+bundles its dependencies, so the small lockfile is complete; its hash matches the npm registry
+byte for byte). Two informational notes were **accepted rather than fixed**, recorded here so
+the accepted trade-offs are as visible as the corrected ones: the hook's `grep` and lint calls
+pass the file path without a `--` separator, which fails closed for a dash-prefixed path (the
+hook errors rather than skipping validation); and the command skill's verbatim relay means the
+agent's report reaches the reader unfiltered — deliberate, because letting the main
+conversation restructure the report is how findings get quietly dropped.
+
 ## Design principle
 
 **AI reasoning where architectural judgment is required; deterministic tooling where rules can be enforced.** The agent reasons about impact. The hook validates contracts without reasoning — a linter either passes or it doesn't, and asking a model to decide that would be slower, costlier, and less reliable.
