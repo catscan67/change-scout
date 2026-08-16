@@ -195,30 +195,33 @@ Known gaps section helps identify which outside sources would actually be useful
 
 ### Why a hook, and what I would change
 
-The agent assesses impact before implementation; the hook gives immediate feedback if Claude later
-writes an invalid OpenAPI contract. It is a **feedback loop, not a gate**: it runs after Claude's
-edit, so it cannot prevent the change, and it sees only edits Claude makes — not edits made in an
-editor, a teammate's push, or a merge. Contract validation a whole team depends on belongs in
-repository-level configuration and CI; this does not replace that.
+The agent does the impact assessment before implementation starts. The hook does something much
+simpler: if Claude changes an OpenAPI contract, it checks whether the contract is still valid.
 
-In a production rollout I would keep the agent in the plugin and move contract validation to that
-shared layer. With more time I would also explore a hook that validates Change Scout's **own
-output** — confirming every required report section, especially Known gaps, is present. That check
-is deterministic, and it points at the part of the plugin that is probabilistic.
+The hook runs after Claude makes the change, so it can't prevent the edit. It also only sees
+changes Claude makes — not something a developer changes in their own editor, a teammate pushes,
+or a merge to main. If contract validation is something the whole team depends on, it belongs in
+the repository and CI, where it applies to everyone.
+
+With more time, I'd also add a hook that's more directly connected to Change Scout itself: check
+the report the agent produces and make sure every required section is there, especially Known
+gaps. Whether a required section is present is a clear yes/no check, which is exactly the kind of
+thing a hook is good at.
 
 ## Known limitations
 
-- **The repository is the evidence boundary, not the enterprise.** Production consumers,
-  release calendars, ownership, and regulatory obligations usually live elsewhere. The
-  assessment names these as gaps rather than guessing — but it cannot resolve them.
-- **`sample-repo/member-services/` is not a runnable system.** It is evidence for a
-  demonstration. `npm test` passes and the contract lints; there is no server.
-- **Acme Health Plan does not exist.** The scenario is fictional.
-- **The linter's network behavior is filtered, not fenced.** The remote-`$ref` check reads only
-  the edited contract. A transitive local reference chain ending at a remote URL would still be
-  resolved by the linter. Enforced network denial around the linter process is the only strong
-  guarantee, and this plugin does not implement one — it is an environmental control, not a
-  property this shell script can provide portably.
+- **Change Scout only knows what it can find in the repository.** Information about production
+  consumers, release schedules, ownership, or regulatory requirements may live somewhere else.
+  Change Scout reports those as gaps instead of guessing.
+- **The sample repository is just a demo.** `sample-repo/member-services/` contains enough code,
+  documentation, contracts, and tests to demonstrate Change Scout, but it isn't a working
+  application.
+- **Acme Health Plan is fictional.**
+- **The OpenAPI validator isn't completely isolated from the network.** Change Scout blocks
+  remote references it can see in the contract being edited, but a reference to another local
+  file could eventually lead to a remote URL. If complete network isolation is required, the
+  validator needs to run in an environment where network access is blocked. See
+  [SECURITY.md](SECURITY.md) for the details.
 
 ## Build your own plugin
 
