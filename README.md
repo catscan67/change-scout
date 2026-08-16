@@ -143,19 +143,20 @@ else. That is what packaging a team's method changes.
 
 ## How it works
 
-**AI reasoning where architectural judgment is required; deterministic tooling where rules can be
-enforced.** The agent reasons about impact; the hook validates contracts without reasoning. The
-implementation is deliberately small:
+Change Scout uses the agent for work that requires judgment, and the hook for something with a
+clear pass/fail answer. The plugin itself is pretty small:
 
-| Path | What it is | Who reads it |
+| Path | What it does | Used by |
 |---|---|---|
-| `skills/enterprise-change-analysis/SKILL.md` | The method — capability, assumptions, contracts, ownership, trust boundaries, dependencies, time and state, test coverage, decision gates. Useful on its own, without the agent | A person, or any agent that preloads it |
-| `agents/impact-analyzer.md` | The investigator. Read-only tools, tier-alias model, bounded turns, preloads the skill | Claude Code, when the command delegates |
-| `skills/impact/SKILL.md` | The entry point. Delegates, then returns the agent's report verbatim. `disable-model-invocation: true` keeps it yours to trigger — Claude never fires it on its own | You |
-| `hooks/hooks.json` | Registers the PostToolUse hook | Claude Code, at startup |
-| `scripts/validate-openapi.sh` | Lints an edited OpenAPI contract, using only trusted local inputs | The hook |
-| `redocly.yaml` | The plugin's own linter config, forced with `--config` so the analyzed repository cannot supply executable configuration | The linter |
-| `sample-repo/member-services/` | A fictional payer service used to demonstrate and test | The agent, during the demo |
+| `skills/enterprise-change-analysis/SKILL.md` | **The method.** Defines what to investigate, what questions to ask, and what the final impact assessment should contain | Impact Analyzer |
+| `agents/impact-analyzer.md` | **The specialist.** Searches and reads the repository using the method above. It is read-only | Impact command |
+| `skills/impact/SKILL.md` | **The command.** Starts the Impact Analyzer and returns its report. It only runs when you invoke it | You |
+| `hooks/hooks.json` | **The trigger.** Tells Claude Code when to run the OpenAPI check | Claude Code |
+| `scripts/validate-openapi.sh` | **The check.** Validates an OpenAPI contract after Claude edits it | Hook |
+| `redocly.yaml` | **The validator settings.** Makes sure the validator uses Change Scout's configuration rather than configuration from the repository being analyzed | Validator |
+
+The repository also includes `sample-repo/member-services/`, a fictional payer service used for
+the demo and testing.
 
 ## Security and execution
 
