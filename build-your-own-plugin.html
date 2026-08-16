@@ -171,11 +171,6 @@
   }
   ul.checks b { font-weight: 600; }
 
-  /* Numbered sub-steps, for a check that is genuinely a sequence. */
-  .steps { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; font-size: 14px; }
-  .steps > span { display: block; }
-  .steps b { color: var(--clay-dark); font-weight: 600; margin-right: 3px; }
-  .steps .cmd { display: block; width: max-content; max-width: 100%; margin-top: 5px; }
 
   .cmd {
     display: inline-block; margin-top: 5px; padding: 2px 7px;
@@ -500,48 +495,39 @@ and wait for my approval.</code></pre>
 
   <!-- 3 &middot; You verify -->
   <div class="panel" role="tabpanel" id="panel-verify" aria-labelledby="tab-verify" tabindex="0" hidden>
-    <p class="lead">Check it by behavior. You never have to read the code Claude wrote &mdash; but some of
-      these you run yourself and some you ask Claude to do, so each one says which.</p>
+    <p class="lead">Check it by behavior. You don&rsquo;t need to read the code Claude wrote.</p>
 
     <ul class="checks">
-      <li><span><b>Claude Code recognizes the plugin.</b> Three steps, in your terminal, from inside
-        your new plugin folder.
-        <span class="steps">
-          <span><b>1.</b> Check the files are shaped correctly.
-            <code class="cmd">claude plugin validate . --strict</code></span>
-          <span><b>2.</b> Start Claude Code and point it at your folder. Being inside the folder is not
-            enough &mdash; without this it loads no plugin and your command will not exist.
-            <code class="cmd">claude --plugin-dir .</code></span>
-          <span><b>3.</b> Type a forward slash and look for your command in the list that appears.</span>
-        </span></span></li>
+      <li><span><b>Does Claude Code recognize your plugin?</b> Validate it, load it, then type a
+        forward slash and make sure your command appears.
+        <span class="note"><code class="cmd">claude plugin validate . --strict</code></span>
+        <span class="note"><code class="cmd">claude --plugin-dir .</code><span class="gloss">loads the
+        plugin &mdash; being inside the folder isn&rsquo;t enough</span></span></span></li>
 
-      <li><span><b>The specialist actually ran.</b> Make sure Claude Code shows your specialist agent running
-        before you see the final answer.</span></li>
+      <li><span><b>Does the specialist actually run?</b> Start the workflow and make sure Claude Code
+        shows the specialist agent running before the final answer appears.</span></li>
 
-      <li><span><b>It didn&rsquo;t change anything it wasn&rsquo;t supposed to.</b> If your plugin is only meant to analyze
-        or report, make sure it didn&rsquo;t change any project files.
-        <span class="note"><code class="cmd">git status</code><span class="gloss">lists files that have changed &mdash; or just ask Claude whether anything did</span></span>
-        <span class="note">If files changed unexpectedly, the specialist may have been given permission to edit
-        them. Ask Claude to review and reduce its permissions.</span></span></li>
+      <li><span><b>Does it only change what it&rsquo;s allowed to change?</b> If your specialist is
+        supposed to be read-only, make sure no project files changed.
+        <span class="note"><code class="cmd">git status</code><span class="gloss">lists files that have
+        changed &mdash; or just ask Claude whether anything did</span></span></span></li>
 
-      <li><span><b>The specialist doesn&rsquo;t follow instructions it finds inside your project.</b> Put a test
-        instruction in a project file telling the specialist to ignore its job. It should flag the instruction,
-        not follow it.</span></li>
+      <li><span><b>Does it treat project files as information, not instructions?</b> Put an instruction
+        in a test file telling the specialist to ignore its job. It should flag or ignore that
+        instruction, not follow it.</span></li>
 
-      <li><span><b>The answer has the structure you asked for.</b> Make sure the final answer includes the
-        sections and information you specified.</span></li>
+      <li><span><b>Does the answer give you what you asked for?</b> Check that it includes the sections
+        and information you defined in your method.</span></li>
 
-      <li><span><b>If you built a hook, it behaves three ways.</b> Ask Claude to break the rule on purpose and
-        you get a clear message; ask it to put the file right and the check goes quiet; ask for a change the
-        rule doesn&rsquo;t apply to and it stays quiet.
-        <span class="note">Ask Claude rather than editing the file yourself. A hook watches what Claude
-        does, so an edit you make in your own editor never reaches it &mdash; and a silent hook looks
-        broken when it is only unaware.</span></span></li>
+      <li><span><b>If you built a hook, does it behave three ways?</b> Break the rule and you get a
+        clear failure; fix it and the failure disappears; do something unrelated and the hook stays
+        quiet.
+        <span class="note">If your hook watches Claude&rsquo;s actions, ask Claude to perform the test
+        rather than editing the file yourself.</span></span></li>
 
-      <li><span><b>It beats plain Claude Code at the job you built it for.</b> Run the same request three times without your plugin
-        loaded, then three times with it &mdash; three each way, because you are checking for consistent
-        behaviour rather than one lucky run. Decide what a good answer looks like before you read either set.
-        If the plugin isn&rsquo;t better, it&rsquo;s the method that needs work &mdash; not the wiring.</span></li>
+      <li><span><b>Does the plugin actually make the result better?</b> Try the same request without
+        your plugin, then with it. If the plugin isn&rsquo;t more consistent, complete, or useful,
+        improve the method before adding more machinery.</span></li>
     </ul>
   </div>
 
