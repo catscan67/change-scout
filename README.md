@@ -215,7 +215,8 @@ accepted rather than fixed, and belong here:
 The review also confirmed the lockfile independently — its single entry looks suspiciously
 small for a CLI, but `@redocly/cli` bundles its dependencies and the integrity hash matches the
 npm registry byte-for-byte. Re-review belongs at every version bump. Commits after the scanned
-SHA are documentation-only, checkable with `git diff 34af262..HEAD --stat`.
+SHA are documentation, plus one formatting line in the method skill (2026-08-16, mandating a
+bulleted list for the Known gaps section) — checkable with `git diff 34af262..HEAD --stat`.
 
 **Third pass, at the release commit.** The shipped code was re-scanned before submission —
 the fourteen-category triage plus the adversarial persona review. No new findings: the one

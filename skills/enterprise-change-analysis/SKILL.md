@@ -220,7 +220,8 @@ The structure:
    finding merely restates one document, it is not a finding.
 4. **Decisions and dependencies** — the decision required, the accountable business or
    technical role, and what it blocks.
-5. **Known gaps** — what remains unknown, what guessing wrong would cost, and who can answer.
+5. **Known gaps** — a bulleted list, one gap per bullet: what remains unknown, what guessing
+   wrong would cost, and who can answer. Never run the gaps together into a paragraph.
 
 Findings are conclusions, not build steps. "The contract cannot express the distinction and
 three consumers depend on current behavior" is a finding. "Add a type parameter to the
