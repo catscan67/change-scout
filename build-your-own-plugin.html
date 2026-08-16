@@ -212,6 +212,8 @@
   .fbody p { margin: 0; max-width: 760px; font-size: 13.5px; color: var(--ink-3); }
   .fbody p b { color: var(--ink-2); font-weight: 600; }
   .fbody code { font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
+  .fbody ul { margin: 0; padding-left: 20px; max-width: 760px; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; color: var(--ink-3); }
+  .fbody li b { color: var(--ink-2); font-weight: 600; }
 
   pre.code {
     margin: 0; padding: 14px 16px; background: var(--card);
@@ -535,8 +537,9 @@ specialist needs. Wait for my approval before creating files.</code></pre>
 
   <div class="deep-block">
     <span class="eyebrow">Under the hood</span>
-    <p class="deep-lead">You don&rsquo;t need any of this to build a working plugin &mdash; Claude writes these files
-      for you. Open a row to see samples of what it writes. Every example is the same plugin:
+    <p class="deep-lead">Claude creates these files from your starter prompt &mdash; you are not
+      expected to write them, only to understand why they&rsquo;re there. Open any section to see what
+      each piece does, what Claude writes, and what to check. Every sample is the same plugin:
       <code>release-readiness</code>, from the worked example above.</p>
 
     <div class="files">
@@ -552,9 +555,8 @@ specialist needs. Wait for my approval before creating files.</code></pre>
   "author": { "name": "Your Name" },
   "license": "MIT"
 }</code></pre>
-          <p>The <code>name</code> becomes the prefix on your command: <code>/release-readiness:assess</code>.
-            This is the only file that belongs in the <code>.claude-plugin</code> folder &mdash; everything else
-            sits alongside it.</p>
+          <p><b>The manifest names your plugin.</b> That name becomes the first part of its command:
+            <code>/release-readiness:assess</code>.</p>
         </div>
       </details>
 
@@ -562,9 +564,8 @@ specialist needs. Wait for my approval before creating files.</code></pre>
         <summary><span class="sname">Team method</span> <span class="stag">SKILL</span>
           <span class="spath">skills/release-method/SKILL.md</span></summary>
         <div class="fbody">
-          <p>Every skill and agent file opens with a block fenced by <code>---</code> lines. That&rsquo;s the
-            settings section &mdash; Claude Code reads it to learn what the file is. Everything after it is
-            instructions, written normally.</p>
+          <p>Your team&rsquo;s approach to the decision, written as instructions. The block between the
+            <code>---</code> lines is settings; everything after it is the method, written normally.</p>
           <pre class="code"><code>---
 name: release-method
 description: How this team decides whether a change is ready to release &mdash; what
@@ -594,10 +595,9 @@ description: How this team decides whether a change is ready to release &mdash; 
 5. **What I couldn't determine** &mdash; and who to ask.
 
 Under 600 words. This is for a decision, not a code review.</code></pre>
-          <p>Those <code>[Confirmed|Claimed|Unknown]</code> marks are worth stealing.
-            <b>Confirmed</b> means the code proves it. <b>Claimed</b> means a document says so and nothing
-            corroborates it. <b>Unknown</b> means nobody could tell. Keeping those apart is most of a
-            report&rsquo;s value.</p>
+          <p><b>This is the part to review carefully.</b> Claude can write the file, but these questions,
+            rules, and report sections define how your plugin thinks about the job. Are they actually the
+            questions your team would ask, in the right order?</p>
         </div>
       </details>
 
@@ -605,6 +605,7 @@ Under 600 words. This is for a decision, not a code review.</code></pre>
         <summary><span class="sname">Specialist</span> <span class="stag">AGENT</span>
           <span class="spath">agents/release-analyzer.md</span></summary>
         <div class="fbody">
+          <p>The worker that does the investigating, and the limits it works under.</p>
           <pre class="code"><code>---
 name: release-analyzer
 description: Investigate whether a change is ready to release. Use when someone
@@ -632,19 +633,13 @@ Never invent a value you can't point to &mdash; not a version, an owner, or a
 setting. Name the gap.
 
 Your final message is the report. Nothing else.</code></pre>
-          <div class="scroll"><table class="tbl">
-            <tr><th>Setting</th><th>What it does</th></tr>
-            <tr><td><code>tools: Read, Grep, Glob</code></td><td>Read files, search inside files, find files by name. That is the complete list of what it can do &mdash; not a request, a limit. It is also a <b>filter</b>: the specialist gets these tools only if the session provides them, and it can never gain one you didn&rsquo;t list. Some Claude Code surfaces don&rsquo;t provide <code>Grep</code> and <code>Glob</code>, which leaves a specialist holding <code>Read</code> alone &mdash; able to open a path it was handed, unable to discover anything. If yours seems unexpectedly weak, run it from a terminal <code>claude</code> session before you change a single instruction.</td></tr>
-            <tr><td><code>skills:</code></td><td>Loads your method into the specialist at startup, so it always has it.</td></tr>
-            <tr><td><code>model: sonnet</code></td><td>Names a tier rather than a specific version, so the plugin keeps working when models are updated.</td></tr>
-            <tr><td><code>maxTurns: 20</code></td><td>A ceiling on steps before it must stop. Your cost control.</td></tr>
-          </table></div>
-          <p><b>If your workflow genuinely needs commands</b> &mdash; the first item above asks what changed
-            since the last release, and only <code>git</code> answers that &mdash; add <code>Bash</code> to the
-            tools line and scope it in your own settings, not in the plugin:
-            <code>"allow": ["Bash(git log:*)", "Bash(git diff:*)"]</code>. Those match the beginning of a
-            command, so treat them as a filter, not a lock. Read-only stops being free the moment you do
-            this, so verify afterwards that nothing in the project changed.</p>
+          <ul>
+            <li><b>Tools</b> &mdash; what the specialist is allowed to do. Start with the smallest set it needs.</li>
+            <li><b>Skills</b> &mdash; loads the team&rsquo;s method so the specialist follows it.</li>
+            <li><b>Model / maxTurns</b> &mdash; which model does the work, and how long it can keep going.</li>
+          </ul>
+          <p><b>If the specialist doesn&rsquo;t need to change anything, don&rsquo;t give it tools that
+            can.</b></p>
         </div>
       </details>
 
@@ -652,6 +647,7 @@ Your final message is the report. Nothing else.</code></pre>
         <summary><span class="sname">Shortcut</span> <span class="stag">COMMAND SKILL</span>
           <span class="spath">skills/assess/SKILL.md</span></summary>
         <div class="fbody">
+          <p>What you type to start the workflow.</p>
           <pre class="code"><code>---
 name: assess
 description: Assess release readiness before the release decision
@@ -669,10 +665,9 @@ Return the subagent's report **verbatim** as your entire response. Do not
 summarize it, restructure it, or add commentary of your own. If it fails or
 returns nothing, say so plainly and show what you got &mdash; do not write an
 assessment of your own to fill the gap.</code></pre>
-          <p><code>$ARGUMENTS</code> is where whatever you typed after the command gets dropped in.
-            <code>argument-hint</code> is the reminder shown as you type.
-            <code>disable-model-invocation: true</code> means only you can start it &mdash; Claude won&rsquo;t decide
-            to run it on its own, which keeps the workflow something you trigger deliberately, rather than something that fires whenever Claude guesses you meant it.</p>
+          <p><b>The shortcut is intentionally boring.</b> It passes your request to the specialist and
+            returns the result. <code>disable-model-invocation: true</code> means the workflow only starts
+            when you ask for it.</p>
         </div>
       </details>
 
@@ -680,24 +675,14 @@ assessment of your own to fill the gap.</code></pre>
         <summary><span class="sname">Clear rule</span> <span class="stag">HOOK</span>
           <span class="spath">hooks/hooks.json + scripts/check-migrations.sh</span></summary>
         <div class="fbody">
-          <p>Two files. One says <b>when</b>, one says <b>what</b>.</p>
+          <p>The hook has two pieces: when to run, and what to check.</p>
           <pre class="code"><code>{ "hooks": { "PostToolUse": [ { "matcher": "Write|Edit", "hooks": [
   { "type": "command",
     "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/check-migrations.sh\"" }
 ] } ] } }</code></pre>
-          <p><code>${CLAUDE_PLUGIN_ROOT}</code> means &ldquo;wherever this plugin folder happens to live.&rdquo;
-            <b>Keep the quotes around it.</b> Mine were missing, my folder path contained a space, the path
-            got cut in half, and the check quietly did nothing while reporting success every time. A check
-            that silently passes is worse than no check at all.</p>
-          <div class="scroll"><table class="tbl">
-            <tr><th>Trigger</th><th>Good for</th><th>Can it stop the action?</th></tr>
-            <tr><td><code>PreToolUse</code></td><td>Preventing something</td><td><b>Yes</b> &mdash; the only one that can stop a tool call</td></tr>
-            <tr><td><code>PostToolUse</code></td><td>Checking a result after a file changes</td><td>No, but your message goes back to Claude, which usually fixes it immediately</td></tr>
-            <tr><td><code>UserPromptSubmit</code></td><td>Adding standing context to every request</td><td>Yes &mdash; but it stops the prompt, not a tool call</td></tr>
-            <tr><td><code>SessionStart</code></td><td>Loading something once at the start</td><td>No</td></tr>
-          </table></div>
-          <p>This script warns when a database change arrives without a matching undo. After creating it,
-            run <code>chmod +x scripts/check-migrations.sh</code> to mark it runnable.</p>
+          <p><code>PostToolUse</code> means the check runs after Claude changes a file; the matcher limits
+            it to Write and Edit actions. The script is the check itself &mdash; this one warns when a
+            database change arrives without a matching undo:</p>
           <pre class="code"><code>#!/usr/bin/env bash
 # Warn when a migration lands without a matching rollback file.
 set -euo pipefail
@@ -711,52 +696,23 @@ case "$FILE" in */migrations/*.sql) ;; *) exit 0 ;; esac
 echo "Migration has no rollback: $FILE" &gt;&amp;2
 echo "Expected: ${FILE%.sql}.down.sql" &gt;&amp;2
 exit 2</code></pre>
-          <p><b>You do not need to be able to write this.</b> Claude will. What it does, in order: find out
-            which file just changed; if it isn&rsquo;t the kind we care about, stop and report success; if the
-            matching undo file already exists, stop and report success; otherwise print a message and finish
-            with the number <b>2</b>, which is how a script tells Claude &ldquo;this failed&rdquo; &mdash; and the message goes
-            back so it can be fixed.</p>
+          <p><b>You don&rsquo;t need to write this script yourself.</b> The important thing to verify is
+            the behavior: a migration without a rollback fails, a migration with one passes, and unrelated
+            changes do nothing &mdash; the same three cases as the Verify step above.</p>
         </div>
       </details>
 
       <details class="file">
         <summary><span class="sname">Running an outside tool</span> <span class="stag">SECURITY</span>
-          <span class="spath">the one place a mistake has real consequences</span></summary>
-        <div class="fbody sec">
-    <p class="quiet">Everything above is mechanics. This is where I got it wrong twice.</p>
-
-    <h4>First: never let a hook download anything.</h4>
-    <p>My first version fetched a document validator from the internet and ran it &mdash; automatically, every
-      time anyone saved a contract file. Two problems. Code I had never seen could run on my machine because
-      I edited a document. And the version wasn&rsquo;t pinned, so what ran could silently change from one day to
-      the next.</p>
-    <p>Instead: install one exact version deliberately, once. Pin it with no version range, commit the lock
-      file so you would know if you ever received something different, install with
-      <code>npm ci --ignore-scripts</code> so the package can&rsquo;t run its own setup code &mdash; and have the hook
-      refuse rather than fetch.</p>
-    <pre class="code"><code>[ -x "$TOOL" ] || { echo "Run 'npm ci --ignore-scripts' first." &gt;&amp;2; exit 2; }</code></pre>
-
-    <h4>Then: ask what that tool reads.</h4>
-    <p>This is the subtler one, and I missed it on the first pass even after fixing the download. The tool
-      was now pinned and trusted. But when it started, it looked for its own settings file &mdash; and it was
-      finding that file <b>inside the project being examined</b>. Many settings formats can load add-ons, and
-      add-ons are code. So a project could hand my trusted tool a settings file that said &ldquo;run my code
-      first,&rdquo; and it would.</p>
-    <p>You&rsquo;ve vetted the inspector, and then you let the building being inspected hand him his instructions
-      on the way in. The fix is to point at your own settings file explicitly, so the tool never goes
-      looking:</p>
-    <pre class="code"><code>"$PLUGIN_ROOT/node_modules/.bin/some-linter" \
-  --config "$PLUGIN_ROOT/linter-config.yaml" "$FILE"</code></pre>
-    <p class="lesson"><b>The general lesson, which outlives this example:</b> pinning the program you run is
-      only half of it. You also have to control what that program is allowed to load.</p>
-
-    <div class="scroll"><table class="tbl">
-      <tr><th>Test</th><th>Expected</th></tr>
-      <tr><td>Delete the installed tool, then trigger the hook</td><td>It refuses with setup instructions &mdash; it does <b>not</b> download anything</td></tr>
-      <tr><td>Put the tool&rsquo;s own settings file into a test project, telling it to run something</td><td>Your hook ignores it and uses your settings</td></tr>
-      <tr><td>Disconnect from the network, then trigger the hook</td><td>It still works</td></tr>
-    </table></div>
-
+          <span class="spath">treat it as a separate design decision</span></summary>
+        <div class="fbody">
+          <p>This plugin&rsquo;s hook is a small script with no dependencies. If yours instead runs an
+            outside tool &mdash; a validator, a linter, a scanner &mdash; treat that as a separate design
+            decision. Know exactly what program will run, control which version you use, and understand
+            what configuration it can load. Don&rsquo;t let an automatic hook quietly fetch or run software
+            you haven&rsquo;t reviewed.</p>
+          <p>The technical notes below cover how: pinned versions, installing without setup scripts, and
+            forcing your own configuration.</p>
         </div>
       </details>
 
