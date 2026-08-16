@@ -116,6 +116,10 @@
     padding: 18px 20px;
   }
   .ex-head { margin: 0; font-size: 13.5px; color: var(--ink-3); }
+  .ex-foot {
+    margin: 2px 0 0; padding-top: 11px; border-top: 1px solid var(--clay-rule);
+    font-size: 13.5px; color: var(--ink-2);
+  }
   .ex-head b { color: var(--ink-2); font-weight: 600; }
   dl.ex-grid {
     margin: 0; display: grid; grid-template-columns: max-content 1fr;
@@ -433,27 +437,27 @@
     </ol>
 
     <div class="example">
-      <p class="ex-head"><b>Worked example &mdash; a release-readiness plugin.</b>
-        Change Scout answers one recurring question: what breaks if we change this? Here, an integration
-        engineer at the same health plan puts a <em>different</em> decision through the four questions
-        &mdash; and this is the example the rest of this page builds on: the file samples under
-        &ldquo;Under the hood&rdquo; below are this same plugin, <code>release-check</code>, fully
-        written.</p>
+      <p class="ex-head"><b>Worked example &mdash; release readiness.</b>
+        Change Scout asks: what could break if we make this change? Here&rsquo;s a different decision the
+        same integration team makes repeatedly: is this change ready to release?</p>
       <dl class="ex-grid">
         <dt>1 &middot; The decision</dt>
-        <dd>Is this enrollment service change ready for Thursday&rsquo;s change-advisory review?</dd>
+        <dd>Is this enrollment service change ready for Thursday&rsquo;s change review?</dd>
 
         <dt>2 &middot; The information</dt>
-        <dd>What changed since the last release, test results, database migration files, deployment
-          settings, and the on-call runbook.</dd>
+        <dd>Changes since the last release, test results, database migrations, deployment settings,
+          and the on-call runbook.</dd>
 
         <dt>3 &middot; Judgment or rule</dt>
-        <dd><b>Judgment:</b> could an on-call engineer actually carry out the rollback plan at 2am?
-          <b>Rule:</b> every database migration has a matching rollback file.</dd>
+        <dd><b>Judgment:</b> could an on-call engineer actually carry out the rollback plan at 2am?<br>
+          <b>Rule:</b> does every database migration have a matching rollback file?</dd>
 
         <dt>4 &middot; Who needs it</dt>
-        <dd>The release manager &mdash; ship, ship with conditions, or don&rsquo;t ship, and what has to happen first.</dd>
+        <dd>The release manager needs a recommendation: ship, ship with conditions, or don&rsquo;t ship
+          &mdash; plus what needs to happen first.</dd>
       </dl>
+      <p class="ex-foot">The judgment belongs with the agent. The clear pass/fail rule is a good
+        candidate for a hook.</p>
     </div>
   </div>
 
