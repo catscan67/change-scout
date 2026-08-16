@@ -73,17 +73,37 @@ Then, in the session:
 Use `/change-scout:impact` for the demo. Bare `/impact` also works when no other installed skill or
 command claims that name.
 
-### What a good assessment surfaces
+### What to look for in the assessment
 
-The request sounds like adding a card type. The evidence says otherwise, and no single file says any of this — each conclusion requires joining two artifacts:
+Change Scout's output varies from run to run. Findings may be combined, separated, or prioritized
+differently — don't compare your report line-for-line with an example. Look instead for the
+behavior the method is designed to produce:
 
-| Joined from | Conclusion |
+- **It challenges the existing assumptions.** The current system was designed around one active
+  plan and one relevant card per member; the new requirement makes that assumption unsafe, and the
+  report should lead with that rather than bury it.
+- **It connects evidence across files.** No single file says any of this — the contract, the
+  plan-resolution code, the architecture document, the tests, and the ownership rules each hold
+  one piece.
+- **It separates what the repository establishes from what it can't.** Missing ownership,
+  system-of-record, consumer, and date-rule decisions should show up as named gaps — never as
+  guesses.
+- **It stops at decisions that belong to someone else.** A good assessment ends where a contract
+  owner, a business owner, or another team has to decide.
+- **It stays an assessment.** The agent is read-only; no project files change while it
+  investigates.
+
+Three landmarks from the sample repository, so you can tell the evidence is real:
+
+| Evidence to connect | What it can reveal |
 |---|---|
-| The contract + the retrieval code | The published API has no way to express *which* card; supporting a second one changes the contract, and consumers depend on current behavior |
-| The plan resolver + the architecture doc | Plan type is a hardcoded constant, so multi-plan members the architecture describes cannot be represented; and nothing in the code models effective dates, so it cannot say what a request returns either side of the cutover |
-| The ownership doc + the orchestration code | Identity validation is owned upstream; that trust boundary constrains which designs are admissible |
-| The test suite + the architecture doc | The two highest-risk scenarios this change creates — a second card type, and a member holding both — have no coverage |
-| The architecture doc against itself | Its capability table and its membership model disagree; the documentation has drifted from intent |
+| The API contract + the card retrieval code | The current interface returns one card and gives callers no way to ask for a specific one |
+| The architecture document + the implementation | The business allows multiple plans and a plan-year transition that the code doesn't model |
+| The ownership rules + the integration docs | Nothing establishes who will own the new pharmacy-card data — which should surface as a gap, not an invented answer |
+
+The wording and grouping of your run won't match another run. That's expected. The repeatable
+part is the method: connect the evidence, name the assumption that no longer holds, separate
+knowns from unknowns, and stop at the decisions the repository can't make.
 
 ### Hook demonstration
 
@@ -91,7 +111,10 @@ With a session open in the sample repo, ask Claude to make any edit to
 `openapi/card-api.yaml`. The PostToolUse hook lints the contract automatically and reports
 failures back into the session. Delete the `title:` line from `info:` and the linter reports the document invalid; make a valid edit and it passes silently. Edit any other file and the hook exits without linting.
 
-## Before and after
+## Observed in baseline testing
+
+These are results from the test runs captured while building the plugin — evidence for why it
+exists, not acceptance criteria for your run. Wording and grouping vary.
 
 Baselines were captured **before any component was written** — five runs of Claude Code without
 the plugin, on the same repository, with the same change request, on the same model — so the
