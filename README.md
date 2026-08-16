@@ -1,10 +1,7 @@
 # Change Scout
 
-*A change-impact scout for enterprise integration developers.*
-
-A Claude Code plugin that recovers the architectural context around a proposed change **before**
-implementation begins. In one sentence: it helps a developer understand what else they might break
-before they change the code.
+**A Claude Code plugin that helps developers understand the impact of a proposed change before
+they start changing code.**
 
 ## Who this is for
 
