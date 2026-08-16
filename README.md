@@ -198,6 +198,25 @@ This plugin was reviewed twice with [Trust Issues](https://github.com/howshannon
 
 That second finding is the more instructive one. The first fix made the executable trustworthy; it did not make what the executable *reads* trustworthy. Trusted tooling loading untrusted configuration from a working tree is a general pattern worth looking for, not a Redocly quirk.
 
+**Third pass** (2026-08-16, at commit `34af262`) — re-run before submission: the 14-category
+triage scan plus the adversarial persona review, against a fresh clone of this public
+repository. No new class of problem. The one confirmed finding was the transitive remote-`$ref`
+limitation already disclosed under Known limitations below. Two informational items were
+accepted rather than fixed, and belong here:
+
+- The hook's `grep` and lint invocations omit `--` separators, so a dash-leading filename would
+  parse as an option. Accepted because the hook receives absolute paths (which cannot begin with
+  a dash) and the failure mode is a loud lint error, not a silent pass.
+- The command skill returns the agent's report **verbatim**, so anything that survived the
+  agent's anti-injection defenses would reach the reader unfiltered. Deliberate: letting the
+  main conversation restructure the report is how findings quietly disappear, and the report is
+  prose to a human, never executed.
+
+The review also confirmed the lockfile independently — its single entry looks suspiciously
+small for a CLI, but `@redocly/cli` bundles its dependencies and the integrity hash matches the
+npm registry byte-for-byte. Re-review belongs at every version bump. Commits after the scanned
+SHA are documentation-only, checkable with `git diff 34af262..HEAD --stat`.
+
 **Third pass, at the release commit.** The shipped code was re-scanned before submission —
 the fourteen-category triage plus the adversarial persona review. No new findings: the one
 Medium-severity item is the transitive-reference limitation already documented under Known
