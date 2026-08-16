@@ -190,7 +190,8 @@ useful, so I left it out.
 
 In a real enterprise environment, that would probably change. A lot of the information Change
 Scout can't find in the repository lives somewhere else — in Jira, Confluence, an API catalog, or
-other enterprise systems. Those are the places where I would look at adding MCP next.
+other enterprise systems. Those are the places where I would look at adding MCP next. The
+Known gaps section helps identify which outside sources would actually be useful to connect.
 
 ### Why a hook, and what I would change
 
