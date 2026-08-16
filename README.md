@@ -183,15 +183,14 @@ the review findings and their fixes — see [SECURITY.md](SECURITY.md).**
 
 ### Why there is no MCP server
 
-Version 1 analyzes evidence inside a repository, which Claude Code's built-in tools already read
-well. Adding an MCP server here would add installation burden, a configuration surface, and a
-trust surface without adding capability — surface area to check a box.
+I didn't include an MCP server because Change Scout doesn't need one for what it does today. The
+first version analyzes information that's already in the repository, and Claude Code already has
+the tools it needs to read and search that information. Adding MCP wouldn't make the plugin more
+useful, so I left it out.
 
-MCP belongs in the enterprise version, where the genuinely missing evidence lives: Confluence for
-architecture decision records, Jira for the change history behind a service, an API catalog for
-the consumer registry the repository can only claim to know. Every assessment names those gaps and
-routes them to a human — and each named gap is a candidate MCP integration. The gaps report is the
-roadmap.
+In a real enterprise environment, that would probably change. A lot of the information Change
+Scout can't find in the repository lives somewhere else — in Jira, Confluence, an API catalog, or
+other enterprise systems. Those are the places where I would look at adding MCP next.
 
 ### Why a hook, and what I would change
 
