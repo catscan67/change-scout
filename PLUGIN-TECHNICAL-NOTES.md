@@ -5,7 +5,7 @@ working plugin — Claude Code will write these files for you. Read it when you 
 files actually look like, when you want to change one by hand, or **before you let a hook run an
 outside tool**, which is the one place where getting it wrong has real consequences.
 
-Worked example: a release-readiness plugin called `release-check`.
+Worked example: `release-readiness`, the same plugin the guide's worked example designs.
 
 ---
 
@@ -19,7 +19,7 @@ instructions, written normally.
 
 ```json
 {
-  "name": "release-check",
+  "name": "release-readiness",
   "version": "0.1.0",
   "description": "Assess release readiness from evidence already in the repository.",
   "author": { "name": "Your Name" },
@@ -27,7 +27,7 @@ instructions, written normally.
 }
 ```
 
-The `name` becomes the prefix on your command: `/release-check:go-nogo`. This is the only file that
+The `name` becomes the prefix on your command: `/release-readiness:assess`. This is the only file that
 belongs in the `.claude-plugin` folder — everything else sits alongside it.
 
 ### The method — `skills/release-method/SKILL.md`
@@ -104,12 +104,12 @@ Settings worth understanding:
 | `model: sonnet` | Names a tier rather than a specific version, so the plugin keeps working when models are updated |
 | `maxTurns: 20` | A ceiling on steps before it must stop. Your cost control |
 
-### The command — `skills/go-nogo/SKILL.md`
+### The command — `skills/assess/SKILL.md`
 
 ```markdown
 ---
-name: go-nogo
-description: Assess release readiness before the go/no-go call
+name: assess
+description: Assess release readiness before the release decision
 argument-hint: <what is being released>
 disable-model-invocation: true
 ---
@@ -256,7 +256,7 @@ Instead: install one exact version deliberately, once, and have the check use on
 
 ```json
 {
-  "name": "release-check",
+  "name": "release-readiness",
   "private": true,
   "scripts": { "setup": "npm ci --ignore-scripts" },
   "devDependencies": { "some-linter": "3.2.1" }

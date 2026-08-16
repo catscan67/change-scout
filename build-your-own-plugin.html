@@ -308,12 +308,12 @@
   <!-- What a plugin is -->
   <text x="60" y="130" font-size="12" letter-spacing="2.5" fill="#B0512E">WHAT A PLUGIN IS</text>
   <text x="1140" y="130" text-anchor="end" font-size="12.5" font-style="italic" fill="#5E5D59">five building blocks</text>
-  <text x="60" y="154" font-size="13.5" fill="#3D3C39">A folder that teaches Claude Code how your team works. Most of a plugin is readable instructions and configuration,</text>
-  <text x="60" y="173" font-size="13.5" fill="#3D3C39">so you can open and check every part of it. Package it with setup instructions so teammates can run the same workflow.</text>
+  <text x="60" y="154" font-size="13.5" fill="#3D3C39">A plugin packages a repeatable way of working for Claude Code. Most of it is readable instructions and configuration,</text>
+  <text x="60" y="173" font-size="13.5" fill="#3D3C39">so you can see what Claude is being told to do and how the pieces fit together.</text>
 
   <path d="M60,392 V196 Q60,188 68,188 H196 L214,204 H1132 Q1140,204 1140,212 V400 Q1140,408 1132,408 H68 Q60,408 60,400 Z"
         fill="#FAF9F5" stroke="#191919" stroke-width="1.5"></path>
-  <text x="74" y="201" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="10.5" fill="#191919">release-check/</text>
+  <text x="74" y="201" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="10.5" fill="#191919">release-readiness/</text>
 
   <g stroke="#D9D4C5" stroke-width="1">
     <line x1="276" y1="218" x2="276" y2="394"></line>
@@ -330,11 +330,11 @@
 
   <!-- Plain-language name, then the official term the docs use -->
   <g text-anchor="middle" font-size="17" font-weight="600">
-    <text x="168" y="276">Identity card</text>
+    <text x="168" y="276">Plugin definition</text>
     <text x="384" y="276">Team method</text>
     <text x="600" y="276">Specialist</text>
     <text x="816" y="276">Shortcut</text>
-    <text x="1032" y="276">Deterministic rule</text>
+    <text x="1032" y="276">Clear rule</text>
   </g>
   <g text-anchor="middle" font-size="10.5" letter-spacing="1.6" fill="#B0512E">
     <text x="168" y="295">MANIFEST</text>
@@ -345,8 +345,8 @@
   </g>
 
   <g text-anchor="middle" font-size="11.5" font-style="italic" fill="#5E5D59">
-    <text x="168" y="318">names the plugin and sets</text>
-    <text x="168" y="332">the command you&rsquo;ll type</text>
+    <text x="168" y="318">names the plugin and tells</text>
+    <text x="168" y="332">Claude Code what&rsquo;s included</text>
 
     <text x="384" y="318">your team&rsquo;s playbook &mdash; the</text>
     <text x="384" y="332">questions to ask, in order, and</text>
@@ -359,15 +359,14 @@
     <text x="816" y="318">what you type to start</text>
     <text x="816" y="332">the workflow</text>
 
-    <text x="1032" y="318">a rule with a clear pass/fail</text>
-    <text x="1032" y="332">result that runs when a</text>
-    <text x="1032" y="346">defined event occurs</text>
+    <text x="1032" y="325">a pass/fail check that runs</text>
+    <text x="1032" y="339">when a defined event occurs</text>
   </g>
   <g text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, monospace" font-size="10.5" fill="#6F6D66">
     <text x="168" y="384">.claude-plugin/plugin.json</text>
     <text x="384" y="384">skills/release-method/SKILL.md</text>
     <text x="600" y="384">agents/release-analyzer.md</text>
-    <text x="816" y="384">skills/go-nogo/SKILL.md</text>
+    <text x="816" y="384">skills/assess/SKILL.md</text>
     <text x="1032" y="384">hooks/hooks.json</text>
   </g>
 
@@ -538,22 +537,22 @@ specialist needs. Wait for my approval before creating files.</code></pre>
     <span class="eyebrow">Under the hood</span>
     <p class="deep-lead">You don&rsquo;t need any of this to build a working plugin &mdash; Claude writes these files
       for you. Open a row to see samples of what it writes. Every example is the same plugin:
-      <code>release-check</code>, from the worked example above.</p>
+      <code>release-readiness</code>, from the worked example above.</p>
 
     <div class="files">
 
       <details class="file">
-        <summary><span class="sname">Identity card</span> <span class="stag">MANIFEST</span>
+        <summary><span class="sname">Plugin definition</span> <span class="stag">MANIFEST</span>
           <span class="spath">.claude-plugin/plugin.json</span></summary>
         <div class="fbody">
           <pre class="code"><code>{
-  "name": "release-check",
+  "name": "release-readiness",
   "version": "0.1.0",
   "description": "Assess release readiness from evidence already in the repository.",
   "author": { "name": "Your Name" },
   "license": "MIT"
 }</code></pre>
-          <p>The <code>name</code> becomes the prefix on your command: <code>/release-check:go-nogo</code>.
+          <p>The <code>name</code> becomes the prefix on your command: <code>/release-readiness:assess</code>.
             This is the only file that belongs in the <code>.claude-plugin</code> folder &mdash; everything else
             sits alongside it.</p>
         </div>
@@ -651,11 +650,11 @@ Your final message is the report. Nothing else.</code></pre>
 
       <details class="file">
         <summary><span class="sname">Shortcut</span> <span class="stag">COMMAND SKILL</span>
-          <span class="spath">skills/go-nogo/SKILL.md</span></summary>
+          <span class="spath">skills/assess/SKILL.md</span></summary>
         <div class="fbody">
           <pre class="code"><code>---
-name: go-nogo
-description: Assess release readiness before the go/no-go call
+name: assess
+description: Assess release readiness before the release decision
 argument-hint: &lt;what is being released&gt;
 disable-model-invocation: true
 ---
@@ -678,7 +677,7 @@ assessment of your own to fill the gap.</code></pre>
       </details>
 
       <details class="file">
-        <summary><span class="sname">Deterministic rule</span> <span class="stag">HOOK</span>
+        <summary><span class="sname">Clear rule</span> <span class="stag">HOOK</span>
           <span class="spath">hooks/hooks.json + scripts/check-migrations.sh</span></summary>
         <div class="fbody">
           <p>Two files. One says <b>when</b>, one says <b>what</b>.</p>
