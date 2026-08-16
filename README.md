@@ -107,9 +107,17 @@ knowns from unknowns, and stop at the decisions the repository can't make.
 
 ### Hook demonstration
 
-With a session open in the sample repo, ask Claude to make any edit to
-`openapi/card-api.yaml`. The PostToolUse hook lints the contract automatically and reports
-failures back into the session. Delete the `title:` line from `info:` and the linter reports the document invalid; make a valid edit and it passes silently. Edit any other file and the hook exits without linting.
+With the session still open in the sample repo, paste this — ask Claude rather than editing
+the file yourself, because the hook watches Claude's edits:
+
+```
+Delete the "title: Member Card API" line from the info block in openapi/card-api.yaml
+```
+
+The hook lints the contract immediately after Claude's edit. `title` is required, so validation
+fails and the failure goes back to Claude — in our runs it either restored the line on its own or
+stopped to ask. A valid edit passes silently, and edits to any other file are ignored. If Claude
+leaves the deletion in place, ask it to restore the line before moving on.
 
 ## Observed in baseline testing
 
@@ -123,13 +131,13 @@ comparison is measured rather than asserted.
 | | Plain Claude Code (5 runs) | **Change Scout** |
 |---|---|---|
 | Changed project files during the "assessment" | 3 of 5 runs — 7–9 files each | **Never — the agent has no editing tools** |
-| Reported the documentation drift | 0 of 5 | **Yes** |
+| Reported that the documentation contradicts itself *(the architecture document describes a single-card system and a multi-plan membership at once)* | 0 of 5 | **Yes** |
 | Led with the invalidated assumption | 0 of 5 | **Yes** |
 | Stopped at decisions owned by someone else | 0 of 5 | **Yes** |
 | Output | code, or a long plan | **A concise impact assessment** |
 
 **The honest summary:** unaided Claude Code is strong here — it finds the issues. What it does not
-do is report that documentation has drifted from intent, name the assumption the change
+do is report that the documentation contradicts itself, name the assumption the change
 invalidates before listing blockers, or stop at the point where a decision belongs to someone
 else. That is what packaging a team's method changes.
 
