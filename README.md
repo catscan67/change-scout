@@ -3,9 +3,16 @@
 **A Claude Code plugin that helps developers understand the impact of a proposed change before
 they start changing code.**
 
+**Change Scout is a working prototype built for this exercise.** The included healthcare payer
+scenario and repository are fictional and designed to demonstrate how the plugin works. It has
+not been deployed or validated for production use.
+
 ## Who this is for
 
-**Enterprise integration developers at regulated healthcare payers** — the people maintaining services that span multiple systems of record (member enrollment, plan administration, document management). They receive requirements that sound simple and turn out to have architectural implications invisible in the code they first open.
+I designed Change Scout around the needs of an **enterprise integration developer at a
+healthcare payer** — someone maintaining services that span member enrollment, plan
+administration, and document management. These developers receive requirements that sound simple
+and turn out to have architectural implications invisible in the code they first open.
 
 The plugin does not inspect live enterprise systems. It reads the architectural evidence
 already in the repository — code, OpenAPI specifications, tests, configuration, integration definitions, documentation — and reconstructs the context around a proposed change.
@@ -24,7 +31,7 @@ the person who needs to decide whether work should begin:
 The report is designed to be concise and readable, and it points back to the repository
 evidence behind each finding.
 
-## Install and try it — under five minutes
+## Install and try the demo — under five minutes
 
 **Prerequisite:** Node.js 20.19–20.x or 22.12+. Change Scout uses Node for the OpenAPI
 validator. You don't need any additional accounts, credentials, or API keys beyond your existing
@@ -153,21 +160,25 @@ the demo and testing.
 
 ## Security and execution
 
-The Impact Analyzer is **read-only**. It can read and search files in the repository, but I did
-not give it tools that allow it to edit files or run shell commands.
+Even though this is a demo, I wanted to understand what the plugin was actually allowed to do.
 
-The OpenAPI hook uses a **specific version of its validator** that is installed with the plugin.
-It doesn't download anything when the hook runs, and it uses its own configuration rather than
-configuration it finds in the repository it's checking.
+The Impact Analyzer is **read-only**. It can read and search the sample repository, but I did not
+give it tools that allow it to edit files or run shell commands.
+
+The OpenAPI hook uses a **specific version of its validator** installed during setup. It doesn't
+download anything when the hook runs, and it uses its own configuration rather than configuration
+from the repository it's checking.
 
 One thing to be aware of: the files the agent reads are sent to Claude for analysis. Change Scout
-itself doesn't add any telemetry or send data to another third-party service. If you're working
-with regulated or sensitive data, use the Claude Code configuration and security controls approved
-by your organization.
+itself doesn't add any telemetry or send data to another third-party service.
 
-I also had the plugin **independently reviewed for security** several times while I was building
-it. Those reviews found issues in the original hook design that I wouldn't have caught myself. I
-worked through the findings, changed the design, and ran the reviews again before submission.
+I also had the plugin **independently reviewed for security** while I was building it. Those
+reviews found issues in the original hook design that I wouldn't have caught myself. I worked
+through the findings, changed the design, and ran the reviews again before submission.
+
+This doesn't make Change Scout production-ready. A real deployment against enterprise
+repositories would need to use the organization's approved Claude Code configuration and security
+controls, particularly for sensitive or regulated data.
 
 For the technical details, including what the reviews found and what changed, see
 [SECURITY.md](SECURITY.md).
