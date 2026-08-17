@@ -12,7 +12,8 @@ already in the repository — code, OpenAPI specifications, tests, configuration
 
 ## What it produces
 
-An **impact assessment**, not a plan and not a diff, written for the person deciding whether the change belongs in this release:
+Change Scout produces an **impact assessment**, not a plan or a code change. It's written for
+the person who needs to decide whether work should begin:
 
 1. **Decision posture** — can work begin, and why or why not
 2. **What is changing** — the capability, and the assumption that no longer holds
@@ -20,32 +21,27 @@ An **impact assessment**, not a plan and not a diff, written for the person deci
 4. **Decisions and dependencies** — what must be decided, by whom, and what it blocks
 5. **Known gaps** — what the repository could not answer, and who to ask
 
-The report is deliberately concise, readable by a business stakeholder, with every conclusion
-traceable to repository evidence through line-level citations.
+The report is designed to be concise and readable, and it points back to the repository
+evidence behind each finding.
 
 ## Install and try it — under five minutes
 
-**Prerequisite:** Node.js 20.19–20.x or 22.12+ (required by the pinned linter). Nothing else — no
-accounts, no credentials, no API keys beyond your existing Claude Code authentication.
+**Prerequisite:** Node.js 20.19–20.x or 22.12+. Change Scout uses Node for the OpenAPI
+validator. You don't need any additional accounts, credentials, or API keys beyond your existing
+Claude Code authentication.
 
-The `npm ci` step is the one-time install of the pinned OpenAPI linter — the only time this
-plugin downloads anything, and you initiate it. Validation is strict: unrecognized manifest
-fields fail. The last command shows what the plugin loads and what it costs.
+Run these commands from a terminal:
 
 ```bash
 git clone https://github.com/catscan67/change-scout.git
 cd change-scout
 npm ci --ignore-scripts
 claude plugin validate . --strict
-claude --plugin-dir . plugin details change-scout
 ```
 
-Skipping setup is safe: the hook detects the missing linter and tells you how to install it rather
-than fetching anything.
-
-The inventory shows one methodology skill, one agent, one command, and one hook. Change Scout adds
-roughly 277 tokens of always-on context; the methodology and agent load only when you invoke an
-assessment.
+The `npm ci --ignore-scripts` step installs the specific version of the OpenAPI validator used by
+the hook. If you skip this step, the hook will tell you it's missing rather than downloading it
+automatically.
 
 ## Demo walkthrough
 
